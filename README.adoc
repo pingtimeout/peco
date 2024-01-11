@@ -1,0 +1,34 @@
+= Peco - The performance cockpit
+
+Peco is a change point detection system for performance test metrics.
+It provides APIs to upload metrics, an engine to detect change points in the uploaded data and a web UI to visualise and annotate these change points.
+
+== Goals
+* Provide a reliable, systematic method to detect performance regressions and improvements (change points) via the E-Divisive algorithm footnote:[David S. Matteson & Nicholas A. James (2014) A Nonparametric Approach for Multiple Change Point Analysis of Multivariate Data, Journal of the American Statistical Association, 109:505, 334-345, DOI: 10.1080/01621459.2013.849605]
+* Enable non-technical users to keep track of performance results and regressions
+* Enable test metrics upload in CI via a REST API
+* Allow users to annotate change points and build a knowledge base of performnce regression causes
+* Automatically create JIRA issues for newly detected regressions
+* Suggest likely root cause based on the metrics that regressed simultaneously
+
+== Competitive analyses
+=== Commercial products
+In most of the load-testing frameworks, regressions are detected either by a static threshold (in milliseconds or percents) or by a dynamic threshold based on a maximum number of standard deviation.
+These threshold-based approaches result in a significant amount of false positives footnote:disclaimer[Daly, William Brown, Henrik Ingo, Jim O'Leary, and David Bradford. 2020. The Use of Change Point Detection to Identify Software Performance Regressions in a Continuous Integration System. In Proceedings of the ACM/SPEC International Conference on Performance Engineering (ICPE '20). Association for Computing Machinery, New York, NY, USA, 67–75. https://doi.org/10.1145/3358960.3375791].
+
+https://www.tricentis.com/products/performance-testing-neoload/features[NeoLoad] provides a performance test analysis feature as part of the load testing platform.
+It has a web-based UI but only detects regressions based on threshold.
+
+https://gatling.io/2022/09/digging-in-to-gatling-enterprise-clouds-advanced-reporting/[Gatling] provides a results dashboard as part of the load testing platform.
+It does not provide any automated regression detection.
+Results have to be manually inspected by a user.
+
+https://docs.datadoghq.com/tracing/guide/alert_anomalies_p99_database/[Datadog] provides an alerting feature as part of the Application Performance Monitoring suite.
+It has a web-based UI but only supports static and dynamoc threshold-based anomaly detection.
+
+=== OSS projects
+The Github project https://github.com/mongodb/signal-processing-algorithms[mongodb/signal-processing-algorithms] implements the E-Divisive algorithm but is only available as a Python library.
+It does not offer any data storage solution or any web UI.
+
+The Github project https://github.com/datastax-labs/hunter[datastax-labs/hunter] leverages `mongodb/signal-processing-algorithms` into a CLI.
+It can use data stored in a CSV file or in a Graphite backend but does not provide any web UI.
