@@ -4,7 +4,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 
 // const cognitoIdentityServiceProvider = new CognitoIdentityProviderClient({});
 
-export const handle_get_request = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+export const handle_get_request = async (event : APIGatewayProxyEvent) : Promise<APIGatewayProxyResult> => {
   console.log("Cognito user pool ID: " + JSON.stringify(process.env.COGNITO_USER_POOL_ID));
   console.log("Received event: " + JSON.stringify(event));
   return {
@@ -16,7 +16,7 @@ export const handle_get_request = async (event: APIGatewayProxyEvent): Promise<A
   };
 };
 
-export const handle_post_request = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+export const handle_post_request = async (event : APIGatewayProxyEvent) : Promise<APIGatewayProxyResult> => {
   console.log("Cognito user pool ID: " + JSON.stringify(process.env.COGNITO_USER_POOL_ID));
   console.log("Received event: " + JSON.stringify(event));
   return {
@@ -28,7 +28,7 @@ export const handle_post_request = async (event: APIGatewayProxyEvent): Promise<
   };
 };
 
-export const handle_put_request = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+export const handle_put_request = async (event : APIGatewayProxyEvent) : Promise<APIGatewayProxyResult> => {
   console.log("Cognito user pool ID: " + JSON.stringify(process.env.COGNITO_USER_POOL_ID));
   console.log("Received event: " + JSON.stringify(event));
   return {
