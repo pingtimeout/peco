@@ -1,8 +1,8 @@
 // import { v4 as uuidv4 } from 'uuid';
-// import { CognitoIdentityProviderClient, AdminGetUserCommand } from '@aws-sdk/client-cognito-identity-provider';
+import { CognitoIdentityProviderClient, AdminGetUserCommand } from '@aws-sdk/client-cognito-identity-provider';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 
-// const cognitoIdentityServiceProvider = new CognitoIdentityProviderClient({});
+const cognitoIdentityServiceProvider = new CognitoIdentityProviderClient({});
 
 export const handle_get_request = async (event : APIGatewayProxyEvent) : Promise<APIGatewayProxyResult> => {
   console.log("Cognito user pool ID: " + JSON.stringify(process.env.COGNITO_USER_POOL_ID));
