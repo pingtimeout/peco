@@ -7,7 +7,6 @@
   },
   "dependencies": {
     "@aws-sdk/client-api-gateway": "^3.484.0",
-    "@aws-sdk/client-cognito-identity-provider": "^3.478.0",
     "uuid": "^9.0.1",
     "uuid-apikey": "^1.5.3"
   }

@@ -24,10 +24,13 @@ Resources:
           RequireNumbers: false
           RequireSymbols: false
           RequireUppercase: false
-      # Schema:
-      #   - AttributeDataType: String
-      #     Name: apiKey
-      #     Mutable: true
+      Schema:
+        - AttributeDataType: String
+          Name: orgId
+          Mutable: true
+        - AttributeDataType: String
+          Name: apiKey
+          Mutable: true
       # LambdaConfig:
       #   PostConfirmation: !GetAtt CognitoAutomaticOrgIdAssignmentFunction.Arn
       UsernameAttributes:
@@ -117,7 +120,6 @@ Resources:
             TableName: !Ref SampleTable
       Environment:
         Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
           SAMPLE_TABLE: !Ref SampleTable
       Events:
         Api:
@@ -135,7 +137,6 @@ Resources:
         External:
           - 'uuid'
           - 'uuid-apikey'
-          - '@aws-sdk/client-cognito-identity-provider'
           - '@aws-sdk/client-api-gateway'
         Minify: false
         Target: "es2020"
@@ -157,7 +158,6 @@ Resources:
             TableName: !Ref SampleTable
       Environment:
         Variables:
-          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
           SAMPLE_TABLE: !Ref SampleTable
       Events:
         Api:
@@ -180,7 +180,6 @@ Resources:
         External:
           - 'uuid'
           - 'uuid-apikey'
-          - '@aws-sdk/client-cognito-identity-provider'
           - '@aws-sdk/client-api-gateway'
         Minify: false
         Target: "es2020"
