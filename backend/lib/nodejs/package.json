@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-api-gateway": "^3.484.0",
-    "uuid": "^9.0.1",
-    "uuid-apikey": "^1.5.3"
+    "@aws-sdk/client-dynamodb": "^3.398.0",
+    "@aws-sdk/lib-dynamodb": "^3.398.0"
   }
 }

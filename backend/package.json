@@ -4,7 +4,7 @@
     "version": "0.0.1",
     "private": true,
     "dependencies": {
-        "@aws-sdk/client-cognito-identity-provider": "^3.490.0",
+        "@aws-sdk/client-api-gateway": "^3.484.0",
         "@aws-sdk/client-dynamodb": "^3.398.0",
         "@aws-sdk/lib-dynamodb": "^3.398.0"
     },
