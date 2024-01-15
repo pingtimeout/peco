@@ -1,0 +1,14 @@
+{
+  "name": "peco-backend-layer",
+  "version": "1.0.0",
+  "description": "AWS Lambda Layer containing all dependencies of Peco backend lambdas",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@aws-sdk/client-api-gateway": "^3.484.0",
+    "@aws-sdk/client-cognito-identity-provider": "^3.478.0",
+    "uuid": "^9.0.1",
+    "uuid-apikey": "^1.5.3"
+  }
+}

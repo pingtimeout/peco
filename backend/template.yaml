@@ -6,30 +6,6 @@ Transform:
   - AWS::Serverless-2016-10-31
 
 Resources:
-  RestApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      StageName: Gamma
-      OpenApiVersion: 3.0.3
-      ApiKeySourceType: HEADER
-      Auth:
-        AddApiKeyRequiredToCorsPreflight: true
-        AddDefaultAuthorizerToCorsPreflight: true
-        Authorizers:
-          RestApiAuthorizer:
-            UserPoolArn: !GetAtt CognitoUserPool.Arn
-        DefaultAuthorizer: RestApiAuthorizer
-        UsagePlan:
-          CreateUsagePlan: PER_API
-          UsagePlanName: Default usage plan
-          Description: Default usage plan with limited quota
-          Quota:
-            Limit: 1000
-            Period: MONTH
-          Throttle:
-            BurstLimit: 10
-            RateLimit: 1
-
   CognitoUserPool:
     Type: AWS::Cognito::UserPool
     Properties:
@@ -58,6 +34,8 @@ Resources:
         - email
       UsernameConfiguration:
         CaseSensitive: false
+
+  # TODO delete this user pool when testing from CLI is not required anymore
   SampleUserPoolClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:
@@ -68,27 +46,84 @@ Resources:
         - ALLOW_USER_SRP_AUTH
         - ALLOW_USER_PASSWORD_AUTH
 
+  RestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      OpenApiVersion: 3.0.3
+      ApiKeySourceType: HEADER
+      Auth:
+        AddApiKeyRequiredToCorsPreflight: true
+        AddDefaultAuthorizerToCorsPreflight: true
+        Authorizers:
+          RestApiAuthorizer:
+            UserPoolArn: !GetAtt CognitoUserPool.Arn
+        DefaultAuthorizer: RestApiAuthorizer
+        UsagePlan:
+          CreateUsagePlan: PER_API
+          UsagePlanName: Default usage plan
+          Description: Default usage plan with limited quota
+          Quota:
+            Limit: 1000
+            Period: MONTH
+          Throttle:
+            BurstLimit: 10
+            RateLimit: 1
+      Models:
+        tag:
+          type: object
+          properties:
+            name:
+              type: string
+            value:
+              type: string
+        usecase:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            description:
+              type: string
+            tags:
+              type: array
+              items:
+                $ref: tag
+
   # Each Lambda function is defined by properties:
   # https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
 
-  CreateUseCaseFunction:
+
+  CommonLambdaDependenciesLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: peco-common-lambda-dependencies-layer
+      ContentUri: lib/.
+      CompatibleRuntimes:
+        - nodejs20.x
+
+  GetUseCaseFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: src/handlers/use-case-crud.handle_get_request
       Runtime: nodejs20.x
       Architectures:
         - arm64
+      Layers:
+        - !Ref CommonLambdaDependenciesLayer
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref SampleTable
       Environment:
         Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
           SAMPLE_TABLE: !Ref SampleTable
       Events:
         Api:
           Type: Api
           Properties:
-            Path: /use-cases/
+            Path: /use-cases/{id}
             Method: GET
             RestApiId: !Ref RestApi
             Auth:
@@ -99,7 +134,55 @@ Resources:
       BuildProperties:
         External:
           - 'uuid'
-        Minify: true
+          - 'uuid-apikey'
+          - '@aws-sdk/client-cognito-identity-provider'
+          - '@aws-sdk/client-api-gateway'
+        Minify: false
+        Target: "es2020"
+        Sourcemap: true
+        EntryPoints:
+          - src/handlers/use-case-crud.mts
+
+  CreateUseCaseFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/use-case-crud.handle_post_request
+      Runtime: nodejs20.x
+      Architectures:
+        - arm64
+      Layers:
+        - !Ref CommonLambdaDependenciesLayer
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref SampleTable
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          SAMPLE_TABLE: !Ref SampleTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /use-cases/
+            Method: POST
+            RestApiId: !Ref RestApi
+            Auth:
+              Authorizer: RestApiAuthorizer
+              ApiKeyRequired: true
+            RequestModel:
+              Model: usecase
+              Required: true
+              ValidateBody: true
+              ValidateParameters: true
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        External:
+          - 'uuid'
+          - 'uuid-apikey'
+          - '@aws-sdk/client-cognito-identity-provider'
+          - '@aws-sdk/client-api-gateway'
+        Minify: false
         Target: "es2020"
         Sourcemap: true
         EntryPoints:
@@ -126,9 +209,15 @@ Resources:
       AutoConfigurationEnabled: true
 
 Outputs:
+  UserPoolId:
+    Description: Cognito UserPool ID
+    Value: !Ref CognitoUserPool
   WebEndpoint:
     Description: API Gateway endpoint URL for Prod stage
     Value: !Sub "https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/use-cases/"
   ApiKey:
     Description: "You can find your API Key in the AWS console: (Put in the request HEADER as 'x-api-key')"
     Value: !Sub "https://console.aws.amazon.com/apigateway/home?region=${AWS::Region}#/api-keys/${RestApiApiKey}"
+  SampleUserPoolClient:
+    Description: "Cognito client id of a sample client created for testing purposes"
+    Value: !Ref SampleUserPoolClient
