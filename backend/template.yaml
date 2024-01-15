@@ -128,10 +128,10 @@ Resources:
         - !Ref CommonLambdaDependenciesLayer
       Policies:
         - DynamoDBReadPolicy:
-            TableName: !Ref SampleTable
+            TableName: !Ref UseCaseTable
       Environment:
         Variables:
-          SAMPLE_TABLE: !Ref SampleTable
+          USE_CASE_TABLE_NAME: !Ref UseCaseTable
       Events:
         Api:
           Type: Api
@@ -146,9 +146,10 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - 'uuid'
-          - 'uuid-apikey'
           - '@aws-sdk/client-api-gateway'
+          - '@aws-sdk/client-dynamodb'
+          - '@aws-sdk/lib-dynamodb'
+          - 'uuid'
         Minify: false
         Target: "es2020"
         Sourcemap: true
@@ -165,11 +166,11 @@ Resources:
       Layers:
         - !Ref CommonLambdaDependenciesLayer
       Policies:
-        - DynamoDBReadPolicy:
-            TableName: !Ref SampleTable
+        - DynamoDBWritePolicy:
+            TableName: !Ref UseCaseTable
       Environment:
         Variables:
-          SAMPLE_TABLE: !Ref SampleTable
+          USE_CASE_TABLE_NAME: !Ref UseCaseTable
       Events:
         Api:
           Type: Api
@@ -189,9 +190,10 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - 'uuid'
-          - 'uuid-apikey'
           - '@aws-sdk/client-api-gateway'
+          - '@aws-sdk/client-dynamodb'
+          - '@aws-sdk/lib-dynamodb'
+          - 'uuid'
         Minify: false
         Target: "es2020"
         Sourcemap: true
@@ -201,12 +203,21 @@ Resources:
   # Each Lambda function is defined by properties:
   # https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
 
-  SampleTable:
-    Type: AWS::Serverless::SimpleTable
+  UseCaseTable:
+    Type: AWS::DynamoDB::Table
     Properties:
-      PrimaryKey:
-        Name: id
-        Type: String
+      TableName: UseCase
+      AttributeDefinitions:
+        - AttributeName: orgId
+          AttributeType: S
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: orgId
+          KeyType: HASH
+        - AttributeName: id
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
 
   ApplicationResourceGroup:
     Type: AWS::ResourceGroups::Group

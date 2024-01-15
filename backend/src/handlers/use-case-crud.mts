@@ -29,14 +29,25 @@ export const handle_post_request = async (event : APIGatewayProxyEvent) : Promis
     }
   }
   const orgId = event.requestContext.authorizer?.claims["custom:orgId"];
-  const parsedUseCase = JSON.parse(event.body || "{}");
-  console.log("Parsed use case is: " + JSON.stringify(parsedUseCase));
-  parsedUseCase["orgId"] = orgId;
-  parsedUseCase["id"] = uuidv4();
-  console.log("Storable use case is: " + JSON.stringify(parsedUseCase));
+  const useCase = JSON.parse(event.body || "{}");
+  console.log("Parsed use case: " + JSON.stringify(useCase));
+  useCase["orgId"] = orgId;
+  useCase["id"] = uuidv4();
+  console.log("Storable use case: " + JSON.stringify(useCase));
+  const useCaseAsString = JSON.stringify(useCase);
+  try {
+    const data = await ddbDocClient.send(new PutCommand({
+      TableName : useCaseTableName,
+      Item: useCase
+    }));
+    console.log("Added use-case: " + useCaseAsString);
+  } catch (err) {
+    console.log("Error", err.stack);
+  }
+
   return {
     statusCode: 200,
-    body: '{"status": "Success during POST"}',
+    body: useCaseAsString,
     headers: {
       "Access-Control-Allow-Origin": "*",
     },
