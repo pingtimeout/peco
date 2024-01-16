@@ -3,6 +3,9 @@
     "target": "es2020",
     "module": "node16",
     "strict": true,
+    "preserveConstEnums": true,
+    "noEmit": true,
+    "noEmitHelpers": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   }

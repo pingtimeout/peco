@@ -1,6 +1,6 @@
 // @prettier
 
-import { v4 as uuidv4 } from "uuid";
+import { generateUuid } from "./uuid-generator";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
@@ -29,18 +29,29 @@ export const handlePostRequest = async (
 ): Promise<APIGatewayProxyResult> => {
   const contentType = event.headers["content-type"];
   if (contentType !== "application/json") {
-    return { statusCode: 415, body: '{"message": "Unsupported Media Type"}' };
+    return {
+      statusCode: 415,
+      body: JSON.stringify({ message: "Unsupported Media Type" }),
+    };
   }
 
-  const orgId = event.requestContext.authorizer?.claims["custom:orgId"];
+  const claims = event.requestContext.authorizer?.claims || {};
+  const orgId = claims["custom:orgId"];
+  console.debug({ event: "Extracted orgId", data: orgId });
+  if(orgId === undefined) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ message: "Missing orgId" }),
+    };
+  }
+
   const useCase = JSON.parse(event.body || "{}");
-  console.debug({ event: "Parsed use case", data: JSON.stringify(useCase) });
+  console.debug({ event: "Parsed use case", data: useCase });
 
   useCase["orgId"] = orgId;
-  useCase["id"] = uuidv4();
+  useCase["id"] = generateUuid();
   console.debug({ event: "Storable use case", data: JSON.stringify(useCase) });
 
-  const useCaseAsString = JSON.stringify(useCase);
   try {
     const data = await ddbDocClient.send(
       new PutCommand({
@@ -48,14 +59,15 @@ export const handlePostRequest = async (
         Item: useCase,
       })
     );
-    console.debug({ event: "Added use-case", data: useCaseAsString });
+    console.debug({ event: "Added use-case", data: JSON.stringify(useCase) });
   } catch (err) {
     console.log("Error", err.stack);
   }
 
+  delete useCase["orgId"];
   return {
     statusCode: 200,
-    body: useCaseAsString,
+    body: JSON.stringify(useCase),
     headers: {
       "Access-Control-Allow-Origin": "*",
     },
