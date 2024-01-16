@@ -120,7 +120,7 @@ Resources:
   GetUseCaseFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: src/handlers/use-case-crud.handle_get_request
+      Handler: src/handlers/use-case-crud.handleGetRequest
       Runtime: nodejs20.x
       Architectures:
         - arm64
@@ -159,7 +159,7 @@ Resources:
   CreateUseCaseFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: src/handlers/use-case-crud.handle_post_request
+      Handler: src/handlers/use-case-crud.handlePostRequest
       Runtime: nodejs20.x
       Architectures:
         - arm64
