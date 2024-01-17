@@ -1,9 +1,10 @@
 import {
   handlePostRequest,
+  handlePutRequest,
   handleGetRequest,
 } from "../../../src/handlers/use-case-crud";
 
-import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { mockClient } from "aws-sdk-client-mock";
 import { APIGatewayProxyEvent } from "aws-lambda";
 
@@ -298,6 +299,184 @@ describe("Test handleGetRequest", () => {
         tags: [
           { name: "the-returned-tag-name", value: "the-returned-tag-value" },
         ],
+      }),
+    });
+  });
+});
+
+describe("Test handlePutRequest", () => {
+  const ddbMock = mockClient(DynamoDBDocumentClient);
+
+  beforeEach(() => {
+    ddbMock.reset();
+  });
+
+  it("should reject queries using other than JSON content type", async () => {
+    const apiGatewayEvent: Partial<APIGatewayProxyEvent> = {
+      headers: {
+        "content-type": "application/x-www-form-urlencoded",
+      },
+    };
+    const result = await handlePutRequest(
+      apiGatewayEvent as APIGatewayProxyEvent
+    );
+    const expectedResult = {
+      statusCode: 415,
+      body: JSON.stringify({
+        message: "Unsupported Media Type",
+      }),
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+    };
+    expect(result).toEqual(expectedResult);
+  });
+
+  it("should reject queries with no authorizer", async () => {
+    const eventWithoutAuthorizer: Partial<APIGatewayProxyEvent> = {
+      headers: {
+        "content-type": "application/json",
+      },
+      requestContext: {},
+    };
+    const resultWithoutAuthorizer = await handlePutRequest(
+      eventWithoutAuthorizer as APIGatewayProxyEvent
+    );
+    expect(resultWithoutAuthorizer).toEqual({
+      statusCode: 401,
+      body: JSON.stringify({
+        message: "Missing orgId",
+      }),
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
+  });
+
+  it("should reject queries with no orgId in claims", async () => {
+    const eventWithoutOrgId: Partial<APIGatewayProxyEvent> = {
+      headers: {
+        "content-type": "application/json",
+      },
+      requestContext: {
+        authorizer: {
+          claims: {},
+        },
+      },
+    };
+    const resultWithoutOrgId = await handlePutRequest(
+      eventWithoutOrgId as APIGatewayProxyEvent
+    );
+    expect(resultWithoutOrgId).toEqual({
+      statusCode: 401,
+      body: JSON.stringify({
+        message: "Missing orgId",
+      }),
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
+  });
+
+  it("should handle missing use-case id", async () => {
+    const eventWithoutId: Partial<APIGatewayProxyEvent> = {
+      headers: {
+        "content-type": "application/json",
+      },
+      requestContext: {
+        authorizer: {
+          claims: {
+            "custom:orgId": "the-org-id",
+          },
+        },
+      },
+    };
+
+    const result = await handlePutRequest(
+      eventWithoutId as APIGatewayProxyEvent
+    );
+
+    expect(result).toEqual({
+      statusCode: 400,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: JSON.stringify({
+        message: "Missing id",
+      }),
+    });
+  });
+
+  it("should handle mismatch between path parameter id and payload id", async () => {
+    const eventWithoutId: Partial<APIGatewayProxyEvent> = {
+      headers: {
+        "content-type": "application/json",
+      },
+      requestContext: {
+        authorizer: {
+          claims: {
+            "custom:orgId": "the-org-id",
+          },
+        },
+      },
+      pathParameters: {
+        id: "path-parameter-use-case-id",
+      },
+      body: JSON.stringify({
+        id: "json-body-use-case-id",
+      }),
+    };
+
+    const result = await handlePutRequest(
+      eventWithoutId as APIGatewayProxyEvent
+    );
+
+    expect(result).toEqual({
+      statusCode: 400,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: JSON.stringify({
+        message: "Id mismatch",
+      }),
+    });
+  });
+
+  it("should overwrite use-case with user-provided data", async () => {
+    const eventWithId: Partial<APIGatewayProxyEvent> = {
+      headers: {
+        "content-type": "application/json",
+      },
+      requestContext: {
+        authorizer: {
+          claims: {
+            "custom:orgId": "the-org-id",
+          },
+        },
+      },
+      pathParameters: {
+        id: "existing-use-case-id",
+      },
+      body: JSON.stringify({
+        id: "existing-use-case-id",
+        name: "the-updated-name",
+        description: "the-updated-description",
+        tags: [{ name: "the-tag-name", value: "the-tag-value" }],
+      }),
+    };
+
+    const result = await handlePutRequest(eventWithId as APIGatewayProxyEvent);
+
+    expect(result).toEqual({
+      statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: JSON.stringify({
+        id: "existing-use-case-id",
+        name: "the-updated-name",
+        description: "the-updated-description",
+        tags: [{ name: "the-tag-name", value: "the-tag-value" }],
       }),
     });
   });

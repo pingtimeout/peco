@@ -146,9 +146,9 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - @aws-sdk/client-api-gateway
-          - @aws-sdk/client-dynamodb
-          - @aws-sdk/lib-dynamodb
+          - '@aws-sdk/client-api-gateway'
+          - '@aws-sdk/client-dynamodb'
+          - '@aws-sdk/lib-dynamodb'
           - uuid
           - http-status-codes
         Minify: false
@@ -157,7 +157,7 @@ Resources:
         EntryPoints:
           - src/handlers/use-case-crud.ts
 
-  CreateUseCaseFunction:
+  PostUseCaseFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: src/handlers/use-case-crud.handlePostRequest
@@ -191,9 +191,54 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         External:
-          - @aws-sdk/client-api-gateway
-          - @aws-sdk/client-dynamodb
-          - @aws-sdk/lib-dynamodb
+          - '@aws-sdk/client-api-gateway'
+          - '@aws-sdk/client-dynamodb'
+          - '@aws-sdk/lib-dynamodb'
+          - uuid
+          - http-status-codes
+        Minify: false
+        Target: "es2020"
+        Sourcemap: true
+        EntryPoints:
+          - src/handlers/use-case-crud.ts
+
+  PutUseCaseFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/use-case-crud.handlePutRequest
+      Runtime: nodejs20.x
+      Architectures:
+        - arm64
+      Layers:
+        - !Ref CommonLambdaDependenciesLayer
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref UseCaseTable
+      Environment:
+        Variables:
+          USE_CASE_TABLE_NAME: !Ref UseCaseTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /use-cases/{id}
+            Method: PUT
+            RestApiId: !Ref RestApi
+            Auth:
+              Authorizer: RestApiAuthorizer
+              ApiKeyRequired: true
+            RequestModel:
+              Model: usecase
+              Required: true
+              ValidateBody: true
+              ValidateParameters: false
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        External:
+          - '@aws-sdk/client-api-gateway'
+          - '@aws-sdk/client-dynamodb'
+          - '@aws-sdk/lib-dynamodb'
           - uuid
           - http-status-codes
         Minify: false
