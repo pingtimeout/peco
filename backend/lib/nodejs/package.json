@@ -9,6 +9,7 @@
     "@aws-sdk/client-api-gateway": "^3.484.0",
     "@aws-sdk/client-dynamodb": "^3.398.0",
     "@aws-sdk/lib-dynamodb": "^3.398.0",
+    "http-status-codes": "^2.3.0",
     "uuid": "^9.0.1"
   }
 }

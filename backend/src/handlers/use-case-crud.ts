@@ -7,6 +7,7 @@ import {
   PutCommand,
   GetCommand,
 } from "@aws-sdk/lib-dynamodb";
+import { StatusCodes } from "http-status-codes";
 
 const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
@@ -17,13 +18,13 @@ export const handleGetRequest = async (
 ): Promise<APIGatewayProxyResult> => {
   const orgId: string | undefined = extractOrgId(event);
   if (orgId === undefined) {
-    return makeApiGwResponse(401, { message: "Missing orgId" });
+    return makeApiGwResponse(StatusCodes.UNAUTHORIZED, { message: "Missing orgId" });
   }
   console.debug({ event: "Extracted orgId", data: orgId });
 
   const useCaseId: string | undefined = event.pathParameters?.id;
   if (useCaseId === undefined) {
-    return makeApiGwResponse(400, { message: "Missing id" });
+    return makeApiGwResponse(StatusCodes.BAD_REQUEST, { message: "Missing id" });
   }
   console.debug({ event: "Extracted useCaseId", data: useCaseId });
 
@@ -41,14 +42,14 @@ export const handleGetRequest = async (
     console.debug({ event: "Fetched use-case", data: useCase });
   } catch (err) {
     console.log("Failed to fetch use-case", err.stack);
-    return makeApiGwResponse(500, { message: "Internal Server Error" });
+    return makeApiGwResponse(StatusCodes.INTERNAL_SERVER_ERROR, { message: "Internal Server Error" });
   }
 
   if (useCase === undefined) {
-    return makeApiGwResponse(404, { message: "Not Found" });
+    return makeApiGwResponse(StatusCodes.NOT_FOUND, { message: "Not Found" });
   } else {
     delete useCase["orgId"];
-    return makeApiGwResponse(200, useCase);
+    return makeApiGwResponse(StatusCodes.OK, useCase);
   }
 };
 
@@ -57,12 +58,12 @@ export const handlePostRequest = async (
 ): Promise<APIGatewayProxyResult> => {
   const contentType = event.headers["content-type"];
   if (contentType !== "application/json") {
-    return makeApiGwResponse(415, { message: "Unsupported Media Type" });
+    return makeApiGwResponse(StatusCodes.UNSUPPORTED_MEDIA_TYPE, { message: "Unsupported Media Type" });
   }
 
   const orgId: string | undefined = extractOrgId(event);
   if (orgId === undefined) {
-    return makeApiGwResponse(401, { message: "Missing orgId" });
+    return makeApiGwResponse(StatusCodes.UNAUTHORIZED, { message: "Missing orgId" });
   }
   console.debug({ event: "Extracted orgId", data: orgId });
 
@@ -82,11 +83,11 @@ export const handlePostRequest = async (
     console.debug({ event: "Added use-case" });
   } catch (err) {
     console.log("Failed to add use-case", err.stack);
-    return makeApiGwResponse(500, { message: "Internal Server Error" });
+    return makeApiGwResponse(StatusCodes.INTERNAL_SERVER_ERROR, { message: "Internal Server Error" });
   }
 
   delete useCase["orgId"];
-  return makeApiGwResponse(200, useCase);
+  return makeApiGwResponse(StatusCodes.OK, useCase);
 };
 
 export const handlePutRequest = async (
@@ -94,12 +95,12 @@ export const handlePutRequest = async (
 ): Promise<APIGatewayProxyResult> => {
   const contentType = event.headers["content-type"];
   if (contentType !== "application/json") {
-    return makeApiGwResponse(415, { message: "Unsupported Media Type" });
+    return makeApiGwResponse(StatusCodes.UNSUPPORTED_MEDIA_TYPE, { message: "Unsupported Media Type" });
   }
 
   const orgId: string | undefined = extractOrgId(event);
   if (orgId === undefined) {
-    return makeApiGwResponse(401, { message: "Missing orgId" });
+    return makeApiGwResponse(StatusCodes.UNAUTHORIZED, { message: "Missing orgId" });
   }
   console.debug({ event: "Extracted orgId", data: orgId });
 
@@ -119,11 +120,11 @@ export const handlePutRequest = async (
     console.debug({ event: "Updated use-case" });
   } catch (err) {
     console.log("Failed to add use-case", err.stack);
-    return makeApiGwResponse(500, { message: "Internal Server Error" });
+    return makeApiGwResponse(StatusCodes.INTERNAL_SERVER_ERROR, { message: "Internal Server Error" });
   }
 
   delete useCase["orgId"];
-  return makeApiGwResponse(200, useCase);
+  return makeApiGwResponse(StatusCodes.OK, useCase);
 };
 
 // {orgId, id}
