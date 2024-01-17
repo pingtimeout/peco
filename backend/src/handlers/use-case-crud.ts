@@ -1,7 +1,7 @@
 import { extractOrgId, makeApiGwResponse } from "../api-gateway-util";
 import { generateUuid } from "./uuid-generator";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, ConditionalCheckFailedException } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
   PutCommand,
@@ -139,21 +139,6 @@ export const handlePutRequest = async (
   }
 
   try {
-    // const fetchResponse = await ddbDocClient.send(
-    //   new GetCommand({
-    //     TableName: useCaseTableName,
-    //     Key: {
-    //       orgId: useCase["orgId"],
-    //       id: useCase["id"],
-    //     },
-    //   })
-    // );
-    // const found = fetchResponse.Item === undefined;
-    // console.debug({ event: "Executed use-case fetch query", data: fetchResponse });
-    // if (!found) {
-    //   return makeApiGwResponse(StatusCodes.NOT_FOUND, { message: "Not Found" });
-    // }
-
     const data = await ddbDocClient.send(
       new PutCommand({
         TableName: useCaseTableName,
@@ -163,10 +148,16 @@ export const handlePutRequest = async (
     );
     console.debug({ event: "Updated use-case", data: data });
   } catch (err) {
-    console.log("Failed to add use-case", err.stack);
-    return makeApiGwResponse(StatusCodes.INTERNAL_SERVER_ERROR, {
-      message: "Internal Server Error",
-    });
+    if (err instanceof ConditionalCheckFailedException) {
+      return makeApiGwResponse(StatusCodes.NOT_FOUND, {
+        message: "Not found",
+      });
+    } else {
+      console.log("Failed to update use-case", err.stack);
+      return makeApiGwResponse(StatusCodes.INTERNAL_SERVER_ERROR, {
+        message: "Internal Server Error",
+      });
+    }
   }
 
   delete useCase["orgId"];
