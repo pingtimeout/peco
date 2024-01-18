@@ -2,9 +2,10 @@ import {
   handlePostRequest,
   handlePutRequest,
   handleGetRequest,
+  handleDeleteRequest,
 } from "../../../src/handlers/use-case-crud";
 
-import { DynamoDBDocumentClient, GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { mockClient } from "aws-sdk-client-mock";
 import { APIGatewayProxyEvent } from "aws-lambda";
 
@@ -478,6 +479,117 @@ describe("Test handlePutRequest", () => {
         description: "the-updated-description",
         tags: [{ name: "the-tag-name", value: "the-tag-value" }],
       }),
+    });
+  });
+});
+
+describe("Test handleDeleteRequest", () => {
+  const ddbMock = mockClient(DynamoDBDocumentClient);
+
+  beforeEach(() => {
+    ddbMock.reset();
+  });
+
+  it("should reject queries with no authorizer", async () => {
+    const eventWithoutAuthorizer: Partial<APIGatewayProxyEvent> = {
+      headers: {
+        "content-type": "application/json",
+      },
+      requestContext: {},
+    };
+    const resultWithoutAuthorizer = await handleDeleteRequest(
+      eventWithoutAuthorizer as APIGatewayProxyEvent
+    );
+    expect(resultWithoutAuthorizer).toEqual({
+      statusCode: 401,
+      body: JSON.stringify({
+        message: "Missing orgId",
+      }),
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
+  });
+
+  it("should reject queries with no orgId in claims", async () => {
+    const eventWithoutOrgId: Partial<APIGatewayProxyEvent> = {
+      headers: {
+        "content-type": "application/json",
+      },
+      requestContext: {
+        authorizer: {
+          claims: {},
+        },
+      },
+    };
+    const resultWithoutOrgId = await handleDeleteRequest(
+      eventWithoutOrgId as APIGatewayProxyEvent
+    );
+    expect(resultWithoutOrgId).toEqual({
+      statusCode: 401,
+      body: JSON.stringify({
+        message: "Missing orgId",
+      }),
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
+  });
+
+  it("should handle missing use-case id", async () => {
+    const eventWithoutId: Partial<APIGatewayProxyEvent> = {
+      headers: {
+        "content-type": "application/json",
+      },
+      requestContext: {
+        authorizer: {
+          claims: {
+            "custom:orgId": "the-org-id",
+          },
+        },
+      },
+    };
+
+    const result = await handleDeleteRequest(
+      eventWithoutId as APIGatewayProxyEvent
+    );
+
+    expect(result).toEqual({
+      statusCode: 400,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: JSON.stringify({
+        message: "Missing id",
+      }),
+    });
+  });
+
+  it("should delete identified use-case", async () => {
+    const eventWithId: Partial<APIGatewayProxyEvent> = {
+      headers: {
+        "content-type": "application/json",
+      },
+      requestContext: {
+        authorizer: {
+          claims: {
+            "custom:orgId": "the-org-id",
+          },
+        },
+      },
+      pathParameters: {
+        id: "existing-use-case-id",
+      },
+    };
+
+    const result = await handlePutRequest(eventWithId as APIGatewayProxyEvent);
+
+    expect(result).toEqual({
+      statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: JSON.stringify({}),
     });
   });
 });

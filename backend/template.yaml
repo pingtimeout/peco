@@ -156,7 +156,6 @@ Resources:
         Sourcemap: true
         EntryPoints:
           - src/handlers/use-case-crud.ts
-
   PostUseCaseFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -201,7 +200,6 @@ Resources:
         Sourcemap: true
         EntryPoints:
           - src/handlers/use-case-crud.ts
-
   PutUseCaseFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -232,6 +230,45 @@ Resources:
               Required: true
               ValidateBody: true
               ValidateParameters: false
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        External:
+          - '@aws-sdk/client-api-gateway'
+          - '@aws-sdk/client-dynamodb'
+          - '@aws-sdk/lib-dynamodb'
+          - uuid
+          - http-status-codes
+        Minify: false
+        Target: "es2020"
+        Sourcemap: true
+        EntryPoints:
+          - src/handlers/use-case-crud.ts
+  DeleteUseCaseFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/use-case-crud.handleDeleteRequest
+      Runtime: nodejs20.x
+      Architectures:
+        - arm64
+      Layers:
+        - !Ref CommonLambdaDependenciesLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UseCaseTable
+      Environment:
+        Variables:
+          USE_CASE_TABLE_NAME: !Ref UseCaseTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /use-cases/{id}
+            Method: DELETE
+            RestApiId: !Ref RestApi
+            Auth:
+              Authorizer: RestApiAuthorizer
+              ApiKeyRequired: true
     Metadata:
       BuildMethod: esbuild
       BuildProperties:

@@ -5,6 +5,7 @@ import { DynamoDBClient, ConditionalCheckFailedException } from "@aws-sdk/client
 import {
   DynamoDBDocumentClient,
   PutCommand,
+  DeleteCommand,
   GetCommand,
 } from "@aws-sdk/lib-dynamodb";
 import { StatusCodes } from "http-status-codes";
@@ -164,5 +165,48 @@ export const handlePutRequest = async (
   return makeApiGwResponse(StatusCodes.OK, useCase);
 };
 
-// {orgId, id}
-// name, description, tags (key, value)
+export const handleDeleteRequest = async (
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> => {
+  const orgId: string | undefined = extractOrgId(event);
+  if (orgId === undefined) {
+    return makeApiGwResponse(StatusCodes.UNAUTHORIZED, {
+      message: "Missing orgId",
+    });
+  }
+  console.debug({ event: "Extracted orgId", data: orgId });
+
+  const useCaseId: string | undefined = event.pathParameters?.id;
+  if (useCaseId === undefined) {
+    return makeApiGwResponse(StatusCodes.BAD_REQUEST, {
+      message: "Missing id",
+    });
+  }
+  console.debug({ event: "Extracted useCaseId", data: useCaseId });
+
+  try {
+    const data = await ddbDocClient.send(
+      new DeleteCommand({
+        TableName: useCaseTableName,
+        Key: {
+          orgId: orgId,
+          id: useCaseId
+        },
+      })
+    );
+    console.debug({ event: "Deleted use-case", data: data });
+  } catch (err) {
+    if (err instanceof ConditionalCheckFailedException) {
+      return makeApiGwResponse(StatusCodes.NOT_FOUND, {
+        message: "Not found",
+      });
+    } else {
+      console.log("Failed to delete use-case", err.stack);
+      return makeApiGwResponse(StatusCodes.INTERNAL_SERVER_ERROR, {
+        message: "Internal Server Error",
+      });
+    }
+  }
+
+  return makeApiGwResponse(StatusCodes.OK, {});
+};
