@@ -1,13 +1,15 @@
 import { extractOrgId, makeApiGwResponse } from "../api-gateway-util";
 import { generateUuid } from "./uuid-generator";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { DynamoDBClient, ConditionalCheckFailedException } from "@aws-sdk/client-dynamodb";
 import {
-  DynamoDBDocumentClient,
-  PutCommand,
-  DeleteCommand,
-  GetCommand,
-} from "@aws-sdk/lib-dynamodb";
+  DynamoDBClient,
+  GetItemCommand,
+  PutItemCommand,
+  DeleteItemCommand,
+  ConditionalCheckFailedException,
+} from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+import { UseCase, UseCaseKey } from "../model/UseCase";
 import { StatusCodes } from "http-status-codes";
 
 const client = new DynamoDBClient({});
@@ -32,31 +34,27 @@ export const handleGetRequest = async (
     });
   }
   console.debug({ event: "Extracted useCaseId", data: useCaseId });
+  const useCaseKey = new UseCaseKey(orgId, useCaseId);
 
   try {
     const response = await ddbDocClient.send(
-      new GetCommand({
+      new GetItemCommand({
         TableName: useCaseTableName,
-        Key: {
-          orgId: orgId,
-          id: useCaseId,
-        },
+        Key: useCaseKey.toAttributeValues(),
       })
     );
-    var useCase = response.Item;
+    const useCase = UseCase.fromAttributeValues(response.Item);
     console.debug({ event: "Fetched use-case", data: useCase });
+    if (useCase === undefined) {
+      return makeApiGwResponse(StatusCodes.NOT_FOUND, { message: "Not Found" });
+    } else {
+      return makeApiGwResponse(StatusCodes.OK, useCase.toApiModel());
+    }
   } catch (err) {
     console.log("Failed to fetch use-case", err.stack);
     return makeApiGwResponse(StatusCodes.INTERNAL_SERVER_ERROR, {
       message: "Internal Server Error",
     });
-  }
-
-  if (useCase === undefined) {
-    return makeApiGwResponse(StatusCodes.NOT_FOUND, { message: "Not Found" });
-  } else {
-    delete useCase["orgId"];
-    return makeApiGwResponse(StatusCodes.OK, useCase);
   }
 };
 
@@ -78,29 +76,26 @@ export const handlePostRequest = async (
   }
   console.debug({ event: "Extracted orgId", data: orgId });
 
-  const useCase = JSON.parse(event.body || "{}");
-  console.debug({ event: "Parsed use case", data: useCase });
-  useCase["orgId"] = orgId;
-  useCase["id"] = generateUuid();
-  console.debug({ event: "Storable use case", data: useCase });
+  const parsedUseCase = JSON.parse(event.body || "{}");
+  console.debug({ event: "Parsed use case", data: parsedUseCase });
+  parsedUseCase["id"] = generateUuid();
+  const useCase = UseCase.fromApiModel(orgId, parsedUseCase);
 
   try {
-    const data = await ddbDocClient.send(
-      new PutCommand({
+    await ddbDocClient.send(
+      new PutItemCommand({
         TableName: useCaseTableName,
-        Item: useCase,
+        Item: useCase.toAttributeValues(),
       })
     );
     console.debug({ event: "Added use-case" });
+    return makeApiGwResponse(StatusCodes.OK, parsedUseCase);
   } catch (err) {
     console.log("Failed to add use-case", err.stack);
     return makeApiGwResponse(StatusCodes.INTERNAL_SERVER_ERROR, {
       message: "Internal Server Error",
     });
   }
-
-  delete useCase["orgId"];
-  return makeApiGwResponse(StatusCodes.OK, useCase);
 };
 
 export const handlePutRequest = async (
@@ -129,29 +124,30 @@ export const handlePutRequest = async (
   }
   console.debug({ event: "Extracted useCaseId", data: useCaseId });
 
-  const useCase = JSON.parse(event.body || "{}");
-  console.debug({ event: "Parsed use case", data: useCase });
-  useCase["orgId"] = orgId;
-  console.debug({ event: "Storable use case", data: useCase });
-  if (useCase["id"] !== useCaseId) {
+  const parsedUseCase = JSON.parse(event.body || "{}");
+  console.debug({ event: "Parsed use case", data: parsedUseCase });
+  const useCase = UseCase.fromApiModel(orgId, parsedUseCase);
+
+  if (parsedUseCase["id"] !== useCaseId) {
     return makeApiGwResponse(StatusCodes.BAD_REQUEST, {
       message: "Id mismatch",
     });
   }
 
   try {
-    const data = await ddbDocClient.send(
-      new PutCommand({
+    await ddbDocClient.send(
+      new PutItemCommand({
         TableName: useCaseTableName,
-        Item: useCase,
+        Item: useCase.toAttributeValues(),
         ConditionExpression: "attribute_exists(orgId) AND attribute_exists(id)",
       })
     );
-    console.debug({ event: "Updated use-case", data: data });
+    console.debug({ event: "Updated use-case" });
+    return makeApiGwResponse(StatusCodes.OK, parsedUseCase);
   } catch (err) {
     if (err instanceof ConditionalCheckFailedException) {
       return makeApiGwResponse(StatusCodes.NOT_FOUND, {
-        message: "Not found",
+        message: "Not Found",
       });
     } else {
       console.log("Failed to update use-case", err.stack);
@@ -160,9 +156,6 @@ export const handlePutRequest = async (
       });
     }
   }
-
-  delete useCase["orgId"];
-  return makeApiGwResponse(StatusCodes.OK, useCase);
 };
 
 export const handleDeleteRequest = async (
@@ -183,22 +176,21 @@ export const handleDeleteRequest = async (
     });
   }
   console.debug({ event: "Extracted useCaseId", data: useCaseId });
+  const useCaseKey = new UseCaseKey(orgId, useCaseId);
 
   try {
-    const data = await ddbDocClient.send(
-      new DeleteCommand({
+    await ddbDocClient.send(
+      new DeleteItemCommand({
         TableName: useCaseTableName,
-        Key: {
-          orgId: orgId,
-          id: useCaseId
-        },
+        Key: useCaseKey.toAttributeValues(),
+        ConditionExpression: "attribute_exists(orgId) AND attribute_exists(id)",
       })
     );
-    console.debug({ event: "Deleted use-case", data: data });
+    console.debug({ event: "Deleted use-case" });
   } catch (err) {
     if (err instanceof ConditionalCheckFailedException) {
       return makeApiGwResponse(StatusCodes.NOT_FOUND, {
-        message: "Not found",
+        message: "Not Found",
       });
     } else {
       console.log("Failed to delete use-case", err.stack);
