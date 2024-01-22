@@ -53,6 +53,7 @@ describe("Test handlePostRequest", () => {
       headers: {
         "content-type": "application/json",
       },
+      // @ts-ignore
       requestContext: {},
     };
     const resultWithoutAuthorizer = await handlePostRequest(
@@ -74,6 +75,7 @@ describe("Test handlePostRequest", () => {
       headers: {
         "content-type": "application/json",
       },
+      // @ts-ignore
       requestContext: {
         authorizer: {
           claims: {},
@@ -99,6 +101,7 @@ describe("Test handlePostRequest", () => {
       headers: {
         "content-type": "application/json",
       },
+      // @ts-ignore
       requestContext: {
         authorizer: {
           claims: {
@@ -143,6 +146,7 @@ describe("Test handleGetRequest", () => {
       headers: {
         "content-type": "application/json",
       },
+      // @ts-ignore
       requestContext: {},
     };
     const resultWithoutAuthorizer = await handleGetRequest(
@@ -164,6 +168,7 @@ describe("Test handleGetRequest", () => {
       headers: {
         "content-type": "application/json",
       },
+      // @ts-ignore
       requestContext: {
         authorizer: {
           claims: {},
@@ -189,6 +194,7 @@ describe("Test handleGetRequest", () => {
       headers: {
         "content-type": "application/json",
       },
+      // @ts-ignore
       requestContext: {
         authorizer: {
           claims: {
@@ -218,6 +224,7 @@ describe("Test handleGetRequest", () => {
       headers: {
         "content-type": "application/json",
       },
+      // @ts-ignore
       requestContext: {
         authorizer: {
           claims: {
@@ -256,6 +263,7 @@ describe("Test handleGetRequest", () => {
       headers: {
         "content-type": "application/json",
       },
+      // @ts-ignore
       requestContext: {
         authorizer: {
           claims: {
@@ -338,6 +346,7 @@ describe("Test handlePutRequest", () => {
       headers: {
         "content-type": "application/json",
       },
+      // @ts-ignore
       requestContext: {},
     };
     const resultWithoutAuthorizer = await handlePutRequest(
@@ -359,6 +368,7 @@ describe("Test handlePutRequest", () => {
       headers: {
         "content-type": "application/json",
       },
+      // @ts-ignore
       requestContext: {
         authorizer: {
           claims: {},
@@ -384,6 +394,7 @@ describe("Test handlePutRequest", () => {
       headers: {
         "content-type": "application/json",
       },
+      // @ts-ignore
       requestContext: {
         authorizer: {
           claims: {
@@ -413,6 +424,7 @@ describe("Test handlePutRequest", () => {
       headers: {
         "content-type": "application/json",
       },
+      // @ts-ignore
       requestContext: {
         authorizer: {
           claims: {
@@ -448,6 +460,7 @@ describe("Test handlePutRequest", () => {
       headers: {
         "content-type": "application/json",
       },
+      // @ts-ignore
       requestContext: {
         authorizer: {
           claims: {
@@ -495,6 +508,7 @@ describe("Test handleDeleteRequest", () => {
       headers: {
         "content-type": "application/json",
       },
+      // @ts-ignore
       requestContext: {},
     };
     const resultWithoutAuthorizer = await handleDeleteRequest(
@@ -516,6 +530,7 @@ describe("Test handleDeleteRequest", () => {
       headers: {
         "content-type": "application/json",
       },
+      // @ts-ignore
       requestContext: {
         authorizer: {
           claims: {},
@@ -541,6 +556,7 @@ describe("Test handleDeleteRequest", () => {
       headers: {
         "content-type": "application/json",
       },
+      // @ts-ignore
       requestContext: {
         authorizer: {
           claims: {
@@ -570,6 +586,7 @@ describe("Test handleDeleteRequest", () => {
       headers: {
         "content-type": "application/json",
       },
+      // @ts-ignore
       requestContext: {
         authorizer: {
           claims: {
