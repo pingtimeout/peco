@@ -61,6 +61,7 @@ exports.handler = async (event: {
     name: event.userName,
     value: apiKey,
     enabled: true,
+    generateDistinctId: false,
   };
   await cognitoIdentityServiceProvider.send(
     new AdminUpdateUserAttributesCommand(updateUserAttributesParams)
