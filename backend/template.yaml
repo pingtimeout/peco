@@ -25,7 +25,7 @@ Resources:
     Properties:
       UserPoolName: peco-cognito-user-pool
       AdminCreateUserConfig:
-        AllowAdminCreateUserOnly: false
+        AllowAdminCreateUserOnly: true
         UnusedAccountValidityDays: 365
       AutoVerifiedAttributes:
         - email
