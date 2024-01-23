@@ -164,6 +164,26 @@ Resources:
               maxItems: 10
               items:
                 $ref: tag
+        environment:
+          type: object
+          additionalProperties: false
+          required:
+            - id
+            - name
+            - description
+            - tags
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            description:
+              type: string
+            tags:
+              type: array
+              maxItems: 10
+              items:
+                $ref: tag
 
   CommonLambdaDependenciesLayer:
     Type: AWS::Serverless::LayerVersion
@@ -277,10 +297,128 @@ Resources:
         EntryPoints:
           - src/handlers/use-case-crud.ts
 
+  GetEnvironmentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/environment-crud.handleGetRequest
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EnvironmentTable
+      Environment:
+        Variables:
+          ENVIRONMENT_TABLE_NAME: !Ref EnvironmentTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /environments/{id}
+            Method: GET
+            RestApiId: !Ref RestApi
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        <<: *esbuild_props
+        EntryPoints:
+          - src/handlers/environment-crud.ts
+  PostEnvironmentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/environment-crud.handlePostRequest
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref EnvironmentTable
+      Environment:
+        Variables:
+          ENVIRONMENT_TABLE_NAME: !Ref EnvironmentTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /environments/
+            Method: POST
+            RestApiId: !Ref RestApi
+            RequestModel:
+              Model: usecase
+              Required: true
+              ValidateBody: true
+              ValidateParameters: false
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        <<: *esbuild_props
+        EntryPoints:
+          - src/handlers/environment-crud.ts
+  PutEnvironmentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/environment-crud.handlePutRequest
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref EnvironmentTable
+      Environment:
+        Variables:
+          ENVIRONMENT_TABLE_NAME: !Ref EnvironmentTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /environments/{id}
+            Method: PUT
+            RestApiId: !Ref RestApi
+            RequestModel:
+              Model: usecase
+              Required: true
+              ValidateBody: true
+              ValidateParameters: false
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        <<: *esbuild_props
+        EntryPoints:
+          - src/handlers/environment-crud.ts
+  DeleteEnvironmentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/environment-crud.handleDeleteRequest
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EnvironmentTable
+      Environment:
+        Variables:
+          ENVIRONMENT_TABLE_NAME: !Ref EnvironmentTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /environments/{id}
+            Method: DELETE
+            RestApiId: !Ref RestApi
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        <<: *esbuild_props
+        EntryPoints:
+          - src/handlers/environment-crud.ts
+
   UseCaseTable:
     Type: AWS::DynamoDB::Table
     Properties:
       TableName: UseCase
+      AttributeDefinitions:
+        - AttributeName: orgId
+          AttributeType: S
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: orgId
+          KeyType: HASH
+        - AttributeName: id
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+  EnvironmentTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Environment
       AttributeDefinitions:
         - AttributeName: orgId
           AttributeType: S
