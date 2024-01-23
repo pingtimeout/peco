@@ -16,9 +16,9 @@ import { mockClient } from "aws-sdk-client-mock";
 import "aws-sdk-client-mock-jest";
 import { APIGatewayProxyEvent } from "aws-lambda";
 
-jest.mock("../../../src/handlers/uuid-generator", () => {
+jest.mock("../../../src/uuid-generator", () => {
   const originalModule = jest.requireActual(
-    "../../../src/handlers/uuid-generator"
+    "../../../src/uuid-generator"
   );
   return {
     __esModule: true,

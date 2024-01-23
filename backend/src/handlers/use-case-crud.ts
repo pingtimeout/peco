@@ -1,5 +1,5 @@
 import { extractOrgId, makeApiGwResponse } from "../api-gateway-util";
-import { generateUuid } from "./uuid-generator";
+import { generateUuid } from "../uuid-generator";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import {
   DynamoDBClient,
@@ -77,7 +77,7 @@ export const handlePostRequest = async (
   console.debug({ event: "Extracted orgId", data: orgId });
 
   const parsedUseCase = JSON.parse(event.body || "{}");
-  console.debug({ event: "Parsed use case", data: parsedUseCase });
+  console.debug({ event: "Parsed use-case", data: parsedUseCase });
   parsedUseCase["id"] = generateUuid();
   const useCase = UseCase.fromApiModel(orgId, parsedUseCase);
 
@@ -125,7 +125,7 @@ export const handlePutRequest = async (
   console.debug({ event: "Extracted useCaseId", data: useCaseId });
 
   const parsedUseCase = JSON.parse(event.body || "{}");
-  console.debug({ event: "Parsed use case", data: parsedUseCase });
+  console.debug({ event: "Parsed use-case", data: parsedUseCase });
   const useCase = UseCase.fromApiModel(orgId, parsedUseCase);
 
   if (parsedUseCase["id"] !== useCaseId) {

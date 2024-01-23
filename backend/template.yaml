@@ -161,10 +161,6 @@ Resources:
               items:
                 $ref: tag
 
-  # Each Lambda function is defined by properties:
-  # https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
-
-
   CommonLambdaDependenciesLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
@@ -308,9 +304,6 @@ Resources:
         EntryPoints:
           - src/handlers/use-case-crud.ts
 
-  # Each Lambda function is defined by properties:
-  # https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
-
   UseCaseTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -344,9 +337,6 @@ Outputs:
   WebEndpoint:
     Description: API Gateway endpoint URL for Prod stage
     Value: !Sub "https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/use-cases/"
-  ApiKey:
-    Description: "You can find your API Key in the AWS console: (Put in the request HEADER as 'x-api-key')"
-    Value: !Sub "https://console.aws.amazon.com/apigateway/home?region=${AWS::Region}#/api-keys/${RestApiApiKey}"
   CliUserPoolClient:
     Description: "Cognito client id of a sample client created for testing purposes"
     Value: !Ref CliUserPoolClient
