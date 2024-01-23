@@ -148,7 +148,6 @@ Resources:
           type: object
           additionalProperties: false
           required:
-            - id
             - name
             - description
             - tags
@@ -168,7 +167,6 @@ Resources:
           type: object
           additionalProperties: false
           required:
-            - id
             - name
             - description
             - tags
