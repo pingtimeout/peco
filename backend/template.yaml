@@ -172,6 +172,7 @@ Resources:
       ContentUri: lib/.
       CompatibleRuntimes:
         - nodejs20.x
+      RetentionPolicy: Delete
 
   GetUseCaseFunction:
     Type: AWS::Serverless::Function
