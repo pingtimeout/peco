@@ -6,33 +6,38 @@ then
   exit 1
 fi
 
-if [ -z "$CLIENT_ID" ]
-then
-  echo "Error: missing CLIENT_ID" >&2
-  exit 1
-fi
-
 if [ -z "$POST_CONFIRMATION_LAMBDA_NAME" ]
 then
   echo "Error: missing POST_CONFIRMATION_LAMBDA_NAME" >&2
   exit 1
 fi
 
+if [ -z "$1" ]
+then
+  echo "Usage: $0 EMAIL_ADDRESS [PASSWORD]" >&2
+  exit 1
+fi
+
 set -eu
+
+EMAIL_ADDRESS=$1
+PASSWORD=${2:-$(uuidgen | tr '[:upper:]' '[:lower:]' | tr -d - | head -c 8)}
+
+echo Creating account for $EMAIL_ADDRESS with password: $PASSWORD
 
 USERNAME=$(
   aws --profile performance cognito-idp admin-create-user \
     --user-pool-id $USER_POOL_ID \
-    --username pierre.laporte@dremio.com \
-    --temporary-password pierre.laporte@dremio.com \
+    --username "$EMAIL_ADDRESS" \
+    --temporary-password "$PASSWORD" \
     --message-action SUPPRESS \
   | jq -r .User.Username
 )
 
 aws --profile performance cognito-idp admin-set-user-password \
   --user-pool-id $USER_POOL_ID \
-  --username pierre.laporte@dremio.com \
-  --password pierre.laporte@dremio.com \
+  --username "$EMAIL_ADDRESS" \
+  --password "$PASSWORD" \
   --permanent
 
 echo "{\"userPoolId\": \"$USER_POOL_ID\", \"userName\": \"$USERNAME\"}" >/tmp/payload.json
