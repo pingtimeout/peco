@@ -19,6 +19,14 @@ Metadata:
     Target: es2020
     Sourcemap: false
 
+Globals:
+  Function:
+    Architectures:
+      - arm64
+    Layers:
+      - !Ref CommonLambdaDependenciesLayer
+    Runtime: nodejs20.x
+
 Resources:
   CognitoUserPool:
     Type: AWS::Cognito::UserPool
@@ -55,11 +63,6 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: src/handlers/cognito-post-confirmation.handler
-      Runtime: nodejs20.x
-      Architectures:
-        - arm64
-      Layers:
-        - !Ref CommonLambdaDependenciesLayer
       Policies:
         - Version: '2012-10-17'
           Statement:
@@ -114,6 +117,7 @@ Resources:
       Auth:
         AddApiKeyRequiredToCorsPreflight: true
         AddDefaultAuthorizerToCorsPreflight: true
+        ApiKeyRequired: true
         Authorizers:
           RestApiAuthorizer:
             UserPoolArn: !GetAtt CognitoUserPool.Arn
@@ -173,11 +177,6 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: src/handlers/use-case-crud.handleGetRequest
-      Runtime: nodejs20.x
-      Architectures:
-        - arm64
-      Layers:
-        - !Ref CommonLambdaDependenciesLayer
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref UseCaseTable
@@ -191,9 +190,6 @@ Resources:
             Path: /use-cases/{id}
             Method: GET
             RestApiId: !Ref RestApi
-            Auth:
-              Authorizer: RestApiAuthorizer
-              ApiKeyRequired: true
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -204,11 +200,6 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: src/handlers/use-case-crud.handlePostRequest
-      Runtime: nodejs20.x
-      Architectures:
-        - arm64
-      Layers:
-        - !Ref CommonLambdaDependenciesLayer
       Policies:
         - DynamoDBWritePolicy:
             TableName: !Ref UseCaseTable
@@ -222,9 +213,6 @@ Resources:
             Path: /use-cases/
             Method: POST
             RestApiId: !Ref RestApi
-            Auth:
-              Authorizer: RestApiAuthorizer
-              ApiKeyRequired: true
             RequestModel:
               Model: usecase
               Required: true
@@ -240,11 +228,6 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: src/handlers/use-case-crud.handlePutRequest
-      Runtime: nodejs20.x
-      Architectures:
-        - arm64
-      Layers:
-        - !Ref CommonLambdaDependenciesLayer
       Policies:
         - DynamoDBWritePolicy:
             TableName: !Ref UseCaseTable
@@ -258,9 +241,6 @@ Resources:
             Path: /use-cases/{id}
             Method: PUT
             RestApiId: !Ref RestApi
-            Auth:
-              Authorizer: RestApiAuthorizer
-              ApiKeyRequired: true
             RequestModel:
               Model: usecase
               Required: true
@@ -276,11 +256,6 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: src/handlers/use-case-crud.handleDeleteRequest
-      Runtime: nodejs20.x
-      Architectures:
-        - arm64
-      Layers:
-        - !Ref CommonLambdaDependenciesLayer
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UseCaseTable
@@ -294,9 +269,6 @@ Resources:
             Path: /use-cases/{id}
             Method: DELETE
             RestApiId: !Ref RestApi
-            Auth:
-              Authorizer: RestApiAuthorizer
-              ApiKeyRequired: true
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
