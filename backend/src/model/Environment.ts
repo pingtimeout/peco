@@ -60,7 +60,7 @@ export class Environment {
         attrs["orgId"].S!,
         attrs["id"].S!,
         attrs["name"].S,
-        attrs["description"].S,
+        attrs["description"]?.S,
         attrs["tags"].L?.map((tag) => new Tag(tag.M!.name.S!, tag.M!.value.S!))
       );
     }
