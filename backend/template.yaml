@@ -181,6 +181,25 @@ Resources:
               maxItems: 10
               items:
                 $ref: tag
+        product:
+          type: object
+          additionalProperties: false
+          required:
+            - name
+            - description
+            - tags
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            description:
+              type: string
+            tags:
+              type: array
+              maxItems: 10
+              items:
+                $ref: tag
 
   CommonLambdaDependenciesLayer:
     Type: AWS::Serverless::LayerVersion
@@ -381,7 +400,7 @@ Resources:
             Method: POST
             RestApiId: !Ref RestApi
             RequestModel:
-              Model: usecase
+              Model: environment
               Required: true
               ValidateBody: true
               ValidateParameters: false
@@ -409,7 +428,7 @@ Resources:
             Method: PUT
             RestApiId: !Ref RestApi
             RequestModel:
-              Model: usecase
+              Model: environment
               Required: true
               ValidateBody: true
               ValidateParameters: false
@@ -507,7 +526,7 @@ Resources:
             Method: POST
             RestApiId: !Ref RestApi
             RequestModel:
-              Model: usecase
+              Model: product
               Required: true
               ValidateBody: true
               ValidateParameters: false
@@ -535,7 +554,7 @@ Resources:
             Method: PUT
             RestApiId: !Ref RestApi
             RequestModel:
-              Model: usecase
+              Model: product
               Required: true
               ValidateBody: true
               ValidateParameters: false
