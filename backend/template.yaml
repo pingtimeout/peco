@@ -8,10 +8,10 @@ Transform:
 Metadata:
   EsbuildProperties: &esbuild_props
     External:
-      - '@aws-sdk/client-api-gateway'
-      - '@aws-sdk/client-cognito-identity-provider'
-      - '@aws-sdk/client-dynamodb'
-      - '@aws-sdk/lib-dynamodb'
+      - "@aws-sdk/client-api-gateway"
+      - "@aws-sdk/client-cognito-identity-provider"
+      - "@aws-sdk/client-dynamodb"
+      - "@aws-sdk/lib-dynamodb"
       - uuid
       - http-status-codes
       - uuid-apikey
@@ -64,7 +64,7 @@ Resources:
     Properties:
       Handler: src/handlers/cognito-post-confirmation.handler
       Policies:
-        - Version: '2012-10-17'
+        - Version: "2012-10-17"
           Statement:
             - Effect: Allow
               Action:
@@ -95,7 +95,6 @@ Resources:
       FunctionName: !GetAtt CognitoAutomaticOrgIdAssignmentFunction.Arn
       Principal: cognito-idp.amazonaws.com
       SourceArn: !GetAtt CognitoUserPool.Arn
-
 
   # TODO delete this user pool when testing from CLI is not required anymore
   CliUserPoolClient:
