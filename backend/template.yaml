@@ -192,6 +192,29 @@ Resources:
         - nodejs20.x
       RetentionPolicy: Delete
 
+  GetAllUseCasesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/use-case-crud.handleGetAllRequest
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref UseCaseTable
+      Environment:
+        Variables:
+          USE_CASE_TABLE_NAME: !Ref UseCaseTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /use-cases/
+            Method: GET
+            RestApiId: !Ref RestApi
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        <<: *esbuild_props
+        EntryPoints:
+          - src/handlers/use-case-crud.ts
   GetUseCaseFunction:
     Type: AWS::Serverless::Function
     Properties:

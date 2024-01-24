@@ -3,6 +3,7 @@ import { generateUuid } from "../uuid-generator";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import {
   DynamoDBClient,
+  ScanCommand,
   GetItemCommand,
   PutItemCommand,
   DeleteItemCommand,
@@ -15,6 +16,51 @@ import { StatusCodes } from "http-status-codes";
 const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
 const useCaseTableName = process.env.USE_CASE_TABLE_NAME;
+
+export const handleGetAllRequest = async (
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> => {
+  const orgId: string | undefined = extractOrgId(event);
+  if (orgId === undefined) {
+    return makeApiGwResponse(StatusCodes.UNAUTHORIZED, {
+      message: "Missing orgId",
+    });
+  }
+  console.debug({ event: "Extracted orgId", data: orgId });
+
+  try {
+    const response = await ddbDocClient.send(
+      new ScanCommand({
+        TableName: useCaseTableName,
+        FilterExpression: "orgId = :O",
+        ExpressionAttributeValues: {
+          ":O": { S: orgId },
+        },
+        ProjectionExpression: "#O, #I, #N, #T",
+        ExpressionAttributeNames: {
+          "#O": "orgId",
+          "#I": "id",
+          "#N": "name",
+          "#T": "tags",
+        },
+      })
+    );
+    const useCases =
+      response.Items?.map((item) => UseCase.fromAttributeValues(item)).filter(
+        (u) => u !== undefined
+      ) || [];
+    console.debug({ event: "Fetched use-cases", data: useCases });
+    return makeApiGwResponse(
+      StatusCodes.OK,
+      useCases.map((u) => u.toApiModel())
+    );
+  } catch (err) {
+    console.log("Failed to fetch use-case", err.stack);
+    return makeApiGwResponse(StatusCodes.INTERNAL_SERVER_ERROR, {
+      message: "Internal Server Error",
+    });
+  }
+};
 
 export const handleGetRequest = async (
   event: APIGatewayProxyEvent
