@@ -450,7 +450,7 @@ Resources:
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref ProductTable
-      Product:
+      Environment:
         Variables:
           PRODUCT_TABLE_NAME: !Ref ProductTable
       Events:
@@ -473,7 +473,7 @@ Resources:
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref ProductTable
-      Product:
+      Environment:
         Variables:
           PRODUCT_TABLE_NAME: !Ref ProductTable
       Events:
@@ -496,7 +496,7 @@ Resources:
       Policies:
         - DynamoDBWritePolicy:
             TableName: !Ref ProductTable
-      Product:
+      Environment:
         Variables:
           PRODUCT_TABLE_NAME: !Ref ProductTable
       Events:
@@ -524,7 +524,7 @@ Resources:
       Policies:
         - DynamoDBWritePolicy:
             TableName: !Ref ProductTable
-      Product:
+      Environment:
         Variables:
           PRODUCT_TABLE_NAME: !Ref ProductTable
       Events:
@@ -552,7 +552,7 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref ProductTable
-      Product:
+      Environment:
         Variables:
           PRODUCT_TABLE_NAME: !Ref ProductTable
       Events:
