@@ -2,10 +2,12 @@ import {
   handlePostRequest,
   handlePutRequest,
   handleGetRequest,
+  handleGetAllRequest,
   handleDeleteRequest,
 } from "../../../src/handlers/environment-crud";
 
 import {
+  ScanCommand,
   PutItemCommand,
   DeleteItemCommand,
   ConditionalCheckFailedException,
@@ -814,6 +816,217 @@ describe("Test handleDeleteRequest", () => {
       body: JSON.stringify({
         message: "Not Found",
       }),
+    });
+  });
+});
+
+describe("Test handleGetAllRequest", () => {
+  const ddbMock = mockClient(DynamoDBDocumentClient);
+
+  beforeEach(() => {
+    ddbMock.reset();
+  });
+
+  it("should reject queries with no authorizer", async () => {
+    const eventWithoutAuthorizer: Partial<APIGatewayProxyEvent> = {
+      headers: {
+        "content-type": "application/json",
+      },
+      // @ts-ignore
+      requestContext: {},
+    };
+    const resultWithoutAuthorizer = await handleGetAllRequest(
+      eventWithoutAuthorizer as APIGatewayProxyEvent
+    );
+    expect(ddbMock.calls().length).toEqual(0);
+    expect(resultWithoutAuthorizer).toEqual({
+      statusCode: 401,
+      body: JSON.stringify({
+        message: "Missing orgId",
+      }),
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
+  });
+
+  it("should reject queries with no orgId in claims", async () => {
+    const eventWithoutOrgId: Partial<APIGatewayProxyEvent> = {
+      headers: {
+        "content-type": "application/json",
+      },
+      // @ts-ignore
+      requestContext: {
+        authorizer: {
+          claims: {},
+        },
+      },
+    };
+    const resultWithoutOrgId = await handleGetAllRequest(
+      eventWithoutOrgId as APIGatewayProxyEvent
+    );
+    expect(ddbMock.calls().length).toEqual(0);
+    expect(resultWithoutOrgId).toEqual({
+      statusCode: 401,
+      body: JSON.stringify({
+        message: "Missing orgId",
+      }),
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
+  });
+
+  it("should list all environments", async () => {
+    const eventWithId: Partial<APIGatewayProxyEvent> = {
+      headers: {
+        "content-type": "application/json",
+      },
+      // @ts-ignore
+      requestContext: {
+        authorizer: {
+          claims: {
+            "custom:orgId": "the-org-id",
+          },
+        },
+      },
+    };
+
+    ddbMock
+      .on(ScanCommand, {
+        TableName: undefined,
+        ExpressionAttributeNames: {
+          "#O": "orgId",
+          "#I": "id",
+          "#N": "name",
+          "#T": "tags",
+        },
+        ExpressionAttributeValues: {
+          ":O": {
+            S: "the-org-id",
+          },
+        },
+        FilterExpression: "orgId = :O",
+        ProjectionExpression: "#O, #I, #N, #T",
+      })
+      .resolves({
+        Count: 3,
+        Items: [
+          {
+            orgId: { S: "the-org-id" },
+            id: { S: "environment-id-1" },
+            name: { S: "name-1" },
+            tags: {
+              L: [
+                {
+                  M: {
+                    name: { S: "tag-1-name" },
+                    value: { S: "tag-1-value-1" },
+                  },
+                },
+                {
+                  M: {
+                    name: { S: "tag-2-name" },
+                    value: { S: "tag-2-value-1" },
+                  },
+                },
+              ],
+            },
+          },
+          {
+            orgId: { S: "the-org-id" },
+            id: { S: "environment-id-2" },
+            name: { S: "name-2" },
+            tags: {
+              L: [
+                {
+                  M: {
+                    name: { S: "tag-1-name" },
+                    value: { S: "tag-1-value-2" },
+                  },
+                },
+              ],
+            },
+          },
+          {
+            orgId: { S: "the-org-id" },
+            id: { S: "environment-id-3" },
+            name: { S: "name-3" },
+            tags: {
+              L: [
+                {
+                  M: {
+                    name: { S: "tag-1-name" },
+                    value: { S: "tag-1-value-3" },
+                  },
+                },
+                {
+                  M: {
+                    name: { S: "tag-2-name" },
+                    value: { S: "tag-2-value-3" },
+                  },
+                },
+                {
+                  M: {
+                    name: { S: "tag-3-name" },
+                    value: { S: "tag-3-value-3" },
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      });
+    const result = await handleGetAllRequest(
+      eventWithId as APIGatewayProxyEvent
+    );
+
+    expect(ddbMock.calls().length).toEqual(1);
+    expect(ddbMock).toHaveReceivedCommandWith(ScanCommand, {
+      TableName: undefined,
+      ExpressionAttributeNames: {
+        "#O": "orgId",
+        "#I": "id",
+        "#N": "name",
+        "#T": "tags",
+      },
+      ExpressionAttributeValues: {
+        ":O": {
+          S: "the-org-id",
+        },
+      },
+      FilterExpression: "orgId = :O",
+      ProjectionExpression: "#O, #I, #N, #T",
+    });
+    expect(result).toEqual({
+      statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: JSON.stringify([
+        {
+          id: "environment-id-1",
+          name: "name-1",
+          tags: [
+            { name: "tag-1-name", value: "tag-1-value-1" },
+            { name: "tag-2-name", value: "tag-2-value-1" },
+          ],
+        },
+        {
+          id: "environment-id-2",
+          name: "name-2",
+          tags: [{ name: "tag-1-name", value: "tag-1-value-2" }],
+        },
+        {
+          id: "environment-id-3",
+          name: "name-3",
+          tags: [
+            { name: "tag-1-name", value: "tag-1-value-3" },
+            { name: "tag-2-name", value: "tag-2-value-3" },
+            { name: "tag-3-name", value: "tag-3-value-3" },
+          ],
+        },
+      ]),
     });
   });
 });

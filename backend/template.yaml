@@ -317,6 +317,29 @@ Resources:
         EntryPoints:
           - src/handlers/use-case-crud.ts
 
+  GetAllEnvironmensFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/environment-crud.handleGetAllRequest
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EnvironmentTable
+      Environment:
+        Variables:
+          ENVIRONMENT_TABLE_NAME: !Ref EnvironmentTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /environments/
+            Method: GET
+            RestApiId: !Ref RestApi
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        <<: *esbuild_props
+        EntryPoints:
+          - src/handlers/environment-crud.ts
   GetEnvironmentFunction:
     Type: AWS::Serverless::Function
     Properties:
