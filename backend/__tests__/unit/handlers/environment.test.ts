@@ -5,7 +5,11 @@ import {
   handleGetAllRequest,
   handleDeleteRequest,
 } from "../../../src/handlers/environment-crud";
-
+import {
+  test_rejection_if_not_json_content_type,
+  test_rejection_if_missing_orgId,
+  test_rejection_if_missing_authorizer,
+} from "../handler-util";
 import {
   ScanCommand,
   PutItemCommand,
@@ -16,12 +20,10 @@ import {
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { mockClient } from "aws-sdk-client-mock";
 import "aws-sdk-client-mock-jest";
-import { APIGatewayProxyEvent } from "aws-lambda";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 
 jest.mock("../../../src/uuid-generator", () => {
-  const originalModule = jest.requireActual(
-    "../../../src/uuid-generator"
-  );
+  const originalModule = jest.requireActual("../../../src/uuid-generator");
   return {
     __esModule: true,
     ...originalModule,
@@ -37,74 +39,15 @@ describe("Test handlePostRequest", () => {
   });
 
   it("should reject queries using other than JSON content type", async () => {
-    const apiGatewayEvent: Partial<APIGatewayProxyEvent> = {
-      headers: {
-        "content-type": "application/x-www-form-urlencoded",
-      },
-    };
-    const result = await handlePostRequest(
-      apiGatewayEvent as APIGatewayProxyEvent
-    );
-    expect(ddbMock.calls().length).toEqual(0);
-    expect(result).toEqual({
-      statusCode: 415,
-      body: JSON.stringify({
-        message: "Unsupported Media Type",
-      }),
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
+    test_rejection_if_not_json_content_type(ddbMock, handlePostRequest);
   });
 
   it("should reject queries with no authorizer", async () => {
-    const eventWithoutAuthorizer: Partial<APIGatewayProxyEvent> = {
-      headers: {
-        "content-type": "application/json",
-      },
-      // @ts-ignore
-      requestContext: {},
-    };
-    const resultWithoutAuthorizer = await handlePostRequest(
-      eventWithoutAuthorizer as APIGatewayProxyEvent
-    );
-    expect(ddbMock.calls().length).toEqual(0);
-    expect(resultWithoutAuthorizer).toEqual({
-      statusCode: 401,
-      body: JSON.stringify({
-        message: "Missing orgId",
-      }),
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
+    test_rejection_if_missing_authorizer(ddbMock, handlePostRequest);
   });
 
   it("should reject queries with no orgId in claims", async () => {
-    const eventWithoutOrgId: Partial<APIGatewayProxyEvent> = {
-      headers: {
-        "content-type": "application/json",
-      },
-      // @ts-ignore
-      requestContext: {
-        authorizer: {
-          claims: {},
-        },
-      },
-    };
-    const resultWithoutOrgId = await handlePostRequest(
-      eventWithoutOrgId as APIGatewayProxyEvent
-    );
-    expect(ddbMock.calls().length).toEqual(0);
-    expect(resultWithoutOrgId).toEqual({
-      statusCode: 401,
-      body: JSON.stringify({
-        message: "Missing orgId",
-      }),
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
+    test_rejection_if_missing_orgId(ddbMock, handlePostRequest);
   });
 
   it("should override user-provided environment id", async () => {
@@ -173,84 +116,15 @@ describe("Test handleGetRequest", () => {
   });
 
   it("should reject queries with no authorizer", async () => {
-    const eventWithoutAuthorizer: Partial<APIGatewayProxyEvent> = {
-      headers: {
-        "content-type": "application/json",
-      },
-      // @ts-ignore
-      requestContext: {},
-    };
-    const resultWithoutAuthorizer = await handleGetRequest(
-      eventWithoutAuthorizer as APIGatewayProxyEvent
-    );
-    expect(ddbMock.calls().length).toEqual(0);
-    expect(resultWithoutAuthorizer).toEqual({
-      statusCode: 401,
-      body: JSON.stringify({
-        message: "Missing orgId",
-      }),
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
+    test_rejection_if_missing_authorizer(ddbMock, handleGetRequest);
   });
 
   it("should reject queries with no orgId in claims", async () => {
-    const eventWithoutOrgId: Partial<APIGatewayProxyEvent> = {
-      headers: {
-        "content-type": "application/json",
-      },
-      // @ts-ignore
-      requestContext: {
-        authorizer: {
-          claims: {},
-        },
-      },
-    };
-    const resultWithoutOrgId = await handleGetRequest(
-      eventWithoutOrgId as APIGatewayProxyEvent
-    );
-    expect(ddbMock.calls().length).toEqual(0);
-    expect(resultWithoutOrgId).toEqual({
-      statusCode: 401,
-      body: JSON.stringify({
-        message: "Missing orgId",
-      }),
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
+    test_rejection_if_missing_orgId(ddbMock, handleGetRequest);
   });
 
   it("should handle missing environment id", async () => {
-    const eventWithoutId: Partial<APIGatewayProxyEvent> = {
-      headers: {
-        "content-type": "application/json",
-      },
-      // @ts-ignore
-      requestContext: {
-        authorizer: {
-          claims: {
-            "custom:orgId": "the-org-id",
-          },
-        },
-      },
-    };
-
-    const result = await handleGetRequest(
-      eventWithoutId as APIGatewayProxyEvent
-    );
-
-    expect(ddbMock.calls().length).toEqual(0);
-    expect(result).toEqual({
-      statusCode: 400,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-      },
-      body: JSON.stringify({
-        message: "Missing id",
-      }),
-    });
+    test_rejection_if_missing_environment_id(ddbMock, handleGetRequest);
   });
 
   it("should handle not found environments", async () => {
@@ -293,7 +167,7 @@ describe("Test handleGetRequest", () => {
     });
   });
 
-  it("should find existing environments", async () => {
+  it("should find existing environment", async () => {
     const eventWithId: Partial<APIGatewayProxyEvent> = {
       headers: {
         "content-type": "application/json",
@@ -371,105 +245,19 @@ describe("Test handlePutRequest", () => {
   });
 
   it("should reject queries using other than JSON content type", async () => {
-    const apiGatewayEvent: Partial<APIGatewayProxyEvent> = {
-      headers: {
-        "content-type": "application/x-www-form-urlencoded",
-      },
-    };
-    const result = await handlePutRequest(
-      apiGatewayEvent as APIGatewayProxyEvent
-    );
-    expect(ddbMock.calls().length).toEqual(0);
-    expect(result).toEqual({
-      statusCode: 415,
-      body: JSON.stringify({
-        message: "Unsupported Media Type",
-      }),
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
+    test_rejection_if_not_json_content_type(ddbMock, handlePutRequest);
   });
 
   it("should reject queries with no authorizer", async () => {
-    const eventWithoutAuthorizer: Partial<APIGatewayProxyEvent> = {
-      headers: {
-        "content-type": "application/json",
-      },
-      // @ts-ignore
-      requestContext: {},
-    };
-    const resultWithoutAuthorizer = await handlePutRequest(
-      eventWithoutAuthorizer as APIGatewayProxyEvent
-    );
-    expect(ddbMock.calls().length).toEqual(0);
-    expect(resultWithoutAuthorizer).toEqual({
-      statusCode: 401,
-      body: JSON.stringify({
-        message: "Missing orgId",
-      }),
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
+    test_rejection_if_missing_authorizer(ddbMock, handlePutRequest);
   });
 
   it("should reject queries with no orgId in claims", async () => {
-    const eventWithoutOrgId: Partial<APIGatewayProxyEvent> = {
-      headers: {
-        "content-type": "application/json",
-      },
-      // @ts-ignore
-      requestContext: {
-        authorizer: {
-          claims: {},
-        },
-      },
-    };
-    const resultWithoutOrgId = await handlePutRequest(
-      eventWithoutOrgId as APIGatewayProxyEvent
-    );
-    expect(ddbMock.calls().length).toEqual(0);
-    expect(resultWithoutOrgId).toEqual({
-      statusCode: 401,
-      body: JSON.stringify({
-        message: "Missing orgId",
-      }),
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
+    test_rejection_if_missing_orgId(ddbMock, handlePutRequest);
   });
 
   it("should handle missing environment id", async () => {
-    const eventWithoutId: Partial<APIGatewayProxyEvent> = {
-      headers: {
-        "content-type": "application/json",
-      },
-      // @ts-ignore
-      requestContext: {
-        authorizer: {
-          claims: {
-            "custom:orgId": "the-org-id",
-          },
-        },
-      },
-    };
-
-    const result = await handlePutRequest(
-      eventWithoutId as APIGatewayProxyEvent
-    );
-
-    expect(ddbMock.calls().length).toEqual(0);
-    expect(result).toEqual({
-      statusCode: 400,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-      },
-      body: JSON.stringify({
-        message: "Missing id",
-      }),
-    });
+    test_rejection_if_missing_environment_id(ddbMock, handlePutRequest);
   });
 
   it("should handle mismatch between path parameter id and payload id", async () => {
@@ -650,84 +438,15 @@ describe("Test handleDeleteRequest", () => {
   });
 
   it("should reject queries with no authorizer", async () => {
-    const eventWithoutAuthorizer: Partial<APIGatewayProxyEvent> = {
-      headers: {
-        "content-type": "application/json",
-      },
-      // @ts-ignore
-      requestContext: {},
-    };
-    const resultWithoutAuthorizer = await handleDeleteRequest(
-      eventWithoutAuthorizer as APIGatewayProxyEvent
-    );
-    expect(ddbMock.calls().length).toEqual(0);
-    expect(resultWithoutAuthorizer).toEqual({
-      statusCode: 401,
-      body: JSON.stringify({
-        message: "Missing orgId",
-      }),
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
+    test_rejection_if_missing_authorizer(ddbMock, handleDeleteRequest);
   });
 
   it("should reject queries with no orgId in claims", async () => {
-    const eventWithoutOrgId: Partial<APIGatewayProxyEvent> = {
-      headers: {
-        "content-type": "application/json",
-      },
-      // @ts-ignore
-      requestContext: {
-        authorizer: {
-          claims: {},
-        },
-      },
-    };
-    const resultWithoutOrgId = await handleDeleteRequest(
-      eventWithoutOrgId as APIGatewayProxyEvent
-    );
-    expect(ddbMock.calls().length).toEqual(0);
-    expect(resultWithoutOrgId).toEqual({
-      statusCode: 401,
-      body: JSON.stringify({
-        message: "Missing orgId",
-      }),
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
+    test_rejection_if_missing_orgId(ddbMock, handleDeleteRequest);
   });
 
   it("should handle missing environment id", async () => {
-    const eventWithoutId: Partial<APIGatewayProxyEvent> = {
-      headers: {
-        "content-type": "application/json",
-      },
-      // @ts-ignore
-      requestContext: {
-        authorizer: {
-          claims: {
-            "custom:orgId": "the-org-id",
-          },
-        },
-      },
-    };
-
-    const result = await handleDeleteRequest(
-      eventWithoutId as APIGatewayProxyEvent
-    );
-
-    expect(ddbMock.calls().length).toEqual(0);
-    expect(result).toEqual({
-      statusCode: 400,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-      },
-      body: JSON.stringify({
-        message: "Missing id",
-      }),
-    });
+    test_rejection_if_missing_environment_id(ddbMock, handleDeleteRequest);
   });
 
   it("should delete identified environment", async () => {
@@ -828,53 +547,11 @@ describe("Test handleGetAllRequest", () => {
   });
 
   it("should reject queries with no authorizer", async () => {
-    const eventWithoutAuthorizer: Partial<APIGatewayProxyEvent> = {
-      headers: {
-        "content-type": "application/json",
-      },
-      // @ts-ignore
-      requestContext: {},
-    };
-    const resultWithoutAuthorizer = await handleGetAllRequest(
-      eventWithoutAuthorizer as APIGatewayProxyEvent
-    );
-    expect(ddbMock.calls().length).toEqual(0);
-    expect(resultWithoutAuthorizer).toEqual({
-      statusCode: 401,
-      body: JSON.stringify({
-        message: "Missing orgId",
-      }),
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
+    test_rejection_if_missing_authorizer(ddbMock, handleGetAllRequest);
   });
 
   it("should reject queries with no orgId in claims", async () => {
-    const eventWithoutOrgId: Partial<APIGatewayProxyEvent> = {
-      headers: {
-        "content-type": "application/json",
-      },
-      // @ts-ignore
-      requestContext: {
-        authorizer: {
-          claims: {},
-        },
-      },
-    };
-    const resultWithoutOrgId = await handleGetAllRequest(
-      eventWithoutOrgId as APIGatewayProxyEvent
-    );
-    expect(ddbMock.calls().length).toEqual(0);
-    expect(resultWithoutOrgId).toEqual({
-      statusCode: 401,
-      body: JSON.stringify({
-        message: "Missing orgId",
-      }),
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
+    test_rejection_if_missing_orgId(ddbMock, handleGetAllRequest);
   });
 
   it("should list all environments", async () => {
@@ -1030,3 +707,35 @@ describe("Test handleGetAllRequest", () => {
     });
   });
 });
+
+async function test_rejection_if_missing_environment_id(
+  ddbMock: any,
+  requestHandler: (e: APIGatewayProxyEvent) => Promise<APIGatewayProxyResult>
+) {
+  const eventWithoutId: Partial<APIGatewayProxyEvent> = {
+    headers: {
+      "content-type": "application/json",
+    },
+    // @ts-ignore
+    requestContext: {
+      authorizer: {
+        claims: {
+          "custom:orgId": "the-org-id",
+        },
+      },
+    },
+  };
+
+  const result = await requestHandler(eventWithoutId as APIGatewayProxyEvent);
+
+  expect(ddbMock.calls().length).toEqual(0);
+  expect(result).toEqual({
+    statusCode: 400,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+    },
+    body: JSON.stringify({
+      message: "Missing id",
+    }),
+  });
+}
