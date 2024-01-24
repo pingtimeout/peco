@@ -485,12 +485,11 @@ Resources:
       AutoConfigurationEnabled: true
 
 Outputs:
-  UserPoolId:
-    Description: Cognito UserPool ID
-    Value: !Ref CognitoUserPool
-  WebEndpoint:
-    Description: API Gateway endpoint URL for Prod stage
-    Value: !Sub "https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/use-cases/"
-  CliUserPoolClient:
-    Description: "Cognito client id of a sample client created for testing purposes"
-    Value: !Ref CliUserPoolClient
+  BaseUrlExport:
+    Value: !Sub "export BASE_URL=https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod"
+  UserPoolIdExport:
+    Value: !Sub "export USER_POOL_ID=${CognitoUserPool}"
+  UserPoolClientIdExport:
+    Value: !Sub "export CLIENT_ID=${CliUserPoolClient}"
+  PostConfirmationLambdaNameExport:
+    Value: !Sub "export POST_CONFIRMATION_LAMBDA_NAME=${CognitoAutomaticOrgIdAssignmentFunction}"
