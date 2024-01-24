@@ -443,6 +443,132 @@ Resources:
         EntryPoints:
           - src/handlers/environment-crud.ts
 
+  GetAllProductFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/product-crud.handleGetAllRequest
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref ProductTable
+      Product:
+        Variables:
+          PRODUCT_TABLE_NAME: !Ref ProductTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /products/
+            Method: GET
+            RestApiId: !Ref RestApi
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        <<: *esbuild_props
+        EntryPoints:
+          - src/handlers/product-crud.ts
+  GetProductFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/product-crud.handleGetRequest
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref ProductTable
+      Product:
+        Variables:
+          PRODUCT_TABLE_NAME: !Ref ProductTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /products/{id}
+            Method: GET
+            RestApiId: !Ref RestApi
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        <<: *esbuild_props
+        EntryPoints:
+          - src/handlers/product-crud.ts
+  PostProductFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/product-crud.handlePostRequest
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref ProductTable
+      Product:
+        Variables:
+          PRODUCT_TABLE_NAME: !Ref ProductTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /products/
+            Method: POST
+            RestApiId: !Ref RestApi
+            RequestModel:
+              Model: usecase
+              Required: true
+              ValidateBody: true
+              ValidateParameters: false
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        <<: *esbuild_props
+        EntryPoints:
+          - src/handlers/product-crud.ts
+  PutProductFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/product-crud.handlePutRequest
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref ProductTable
+      Product:
+        Variables:
+          PRODUCT_TABLE_NAME: !Ref ProductTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /products/{id}
+            Method: PUT
+            RestApiId: !Ref RestApi
+            RequestModel:
+              Model: usecase
+              Required: true
+              ValidateBody: true
+              ValidateParameters: false
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        <<: *esbuild_props
+        EntryPoints:
+          - src/handlers/product-crud.ts
+  DeleteProductFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/product-crud.handleDeleteRequest
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProductTable
+      Product:
+        Variables:
+          PRODUCT_TABLE_NAME: !Ref ProductTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /products/{id}
+            Method: DELETE
+            RestApiId: !Ref RestApi
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        <<: *esbuild_props
+        EntryPoints:
+          - src/handlers/product-crud.ts
+
   UseCaseTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -462,6 +588,21 @@ Resources:
     Type: AWS::DynamoDB::Table
     Properties:
       TableName: Environment
+      AttributeDefinitions:
+        - AttributeName: orgId
+          AttributeType: S
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: orgId
+          KeyType: HASH
+        - AttributeName: id
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+  ProductTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Product
       AttributeDefinitions:
         - AttributeName: orgId
           AttributeType: S
