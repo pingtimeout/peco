@@ -225,6 +225,29 @@ Resources:
               maxItems: 10
               items:
                 $ref: tag
+        benchmarkdefinition:
+          type: object
+          additionalProperties: false
+          required:
+            - useCaseId
+            - environmentId
+            - productId
+          properties:
+            id:
+              type: string
+            useCaseId:
+              type: string
+            environmentId:
+              type: string
+            productId:
+              type: string
+            jenkinsJobUrl:
+              type: string
+            tags:
+              type: array
+              maxItems: 10
+              items:
+                $ref: tag
 
   CommonLambdaDependenciesLayer:
     Type: AWS::Serverless::LayerVersion
@@ -739,6 +762,141 @@ Resources:
         EntryPoints:
           - src/handlers/metric-definition-crud.ts
 
+  GetAllBenchmarkDefinitionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/benchmark-definition-crud.handleGetAllRequest
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref BenchmarkDefinitionTable
+      Environment:
+        Variables:
+          BENCHMARK_DEFINITION_TABLE_NAME: !Ref BenchmarkDefinitionTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /benchmark-definitions/
+            Method: GET
+            RestApiId: !Ref RestApi
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        <<: *esbuild_props
+        EntryPoints:
+          - src/handlers/benchmark-definition-crud.ts
+  GetBenchmarkDefinitionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/benchmark-definition-crud.handleGetRequest
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref BenchmarkDefinitionTable
+      Environment:
+        Variables:
+          BENCHMARK_DEFINITION_TABLE_NAME: !Ref BenchmarkDefinitionTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /benchmark-definitions/{id}
+            Method: GET
+            RestApiId: !Ref RestApi
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        <<: *esbuild_props
+        EntryPoints:
+          - src/handlers/benchmark-definition-crud.ts
+  PostBenchmarkDefinitionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/benchmark-definition-crud.handlePostRequest
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref BenchmarkDefinitionTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref UseCaseTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref EnvironmentTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref ProductTable
+      Environment:
+        Variables:
+          USE_CASE_TABLE_NAME: !Ref UseCaseTable
+          ENVIRONMENT_TABLE_NAME: !Ref EnvironmentTable
+          PRODUCT_TABLE_NAME: !Ref ProductTable
+          BENCHMARK_DEFINITION_TABLE_NAME: !Ref BenchmarkDefinitionTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /benchmark-definitions/
+            Method: POST
+            RestApiId: !Ref RestApi
+            RequestModel:
+              Model: benchmarkdefinition
+              Required: true
+              ValidateBody: true
+              ValidateParameters: false
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        <<: *esbuild_props
+        EntryPoints:
+          - src/handlers/benchmark-definition-crud.ts
+  PutBenchmarkDefinitionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/benchmark-definition-crud.handlePutRequest
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref BenchmarkDefinitionTable
+      Environment:
+        Variables:
+          BENCHMARK_DEFINITION_TABLE_NAME: !Ref BenchmarkDefinitionTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /benchmark-definitions/{id}
+            Method: PUT
+            RestApiId: !Ref RestApi
+            RequestModel:
+              Model: benchmarkdefinition
+              Required: true
+              ValidateBody: true
+              ValidateParameters: false
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        <<: *esbuild_props
+        EntryPoints:
+          - src/handlers/benchmark-definition-crud.ts
+  DeleteBenchmarkDefinitionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/benchmark-definition-crud.handleDeleteRequest
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref BenchmarkDefinitionTable
+      Environment:
+        Variables:
+          BENCHMARK_DEFINITION_TABLE_NAME: !Ref BenchmarkDefinitionTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /benchmark-definitions/{id}
+            Method: DELETE
+            RestApiId: !Ref RestApi
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        <<: *esbuild_props
+        EntryPoints:
+          - src/handlers/benchmark-definition-crud.ts
+
   UseCaseTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -788,6 +946,21 @@ Resources:
     Type: AWS::DynamoDB::Table
     Properties:
       TableName: MetricDefinitions
+      AttributeDefinitions:
+        - AttributeName: orgId
+          AttributeType: S
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: orgId
+          KeyType: HASH
+        - AttributeName: id
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+  BenchmarkDefinitionTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: BenchmarkDefinitions
       AttributeDefinitions:
         - AttributeName: orgId
           AttributeType: S
