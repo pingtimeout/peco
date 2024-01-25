@@ -742,7 +742,7 @@ Resources:
   UseCaseTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: UseCase
+      TableName: UseCases
       AttributeDefinitions:
         - AttributeName: orgId
           AttributeType: S
@@ -757,7 +757,7 @@ Resources:
   EnvironmentTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: Environment
+      TableName: Environments
       AttributeDefinitions:
         - AttributeName: orgId
           AttributeType: S
@@ -772,7 +772,7 @@ Resources:
   ProductTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: Product
+      TableName: Products
       AttributeDefinitions:
         - AttributeName: orgId
           AttributeType: S
@@ -787,7 +787,7 @@ Resources:
   MetricDefinitionTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: MetricDefinition
+      TableName: MetricDefinitions
       AttributeDefinitions:
         - AttributeName: orgId
           AttributeType: S
