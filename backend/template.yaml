@@ -429,65 +429,24 @@ Resources:
         <<: *esbuild_props
         EntryPoints:
           - src/handlers/product-crud.ts
-
-  GetAllMetricDefinitionFunction:
+  CrudMetricDefinitionsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: src/handlers/metric-definition-crud.handleGetAllRequest
+      Handler: src/handlers/metric-definition-crud.handleAnyRequest
       Policies:
-        - DynamoDBReadPolicy:
+        - DynamoDBCrudPolicy:
             TableName: !Ref MetricDefinitionTable
       Environment:
         Variables:
           METRIC_DEFINITION_TABLE_NAME: !Ref MetricDefinitionTable
       Events:
-        Api:
+        ListAll:
           Type: Api
           Properties:
             Path: /metric-definitions/
             Method: GET
             RestApiId: !Ref RestApi
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        <<: *esbuild_props
-        EntryPoints:
-          - src/handlers/metric-definition-crud.ts
-  GetMetricDefinitionFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/handlers/metric-definition-crud.handleGetRequest
-      Policies:
-        - DynamoDBReadPolicy:
-            TableName: !Ref MetricDefinitionTable
-      Environment:
-        Variables:
-          METRIC_DEFINITION_TABLE_NAME: !Ref MetricDefinitionTable
-      Events:
-        Api:
-          Type: Api
-          Properties:
-            Path: /metric-definitions/{id}
-            Method: GET
-            RestApiId: !Ref RestApi
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        <<: *esbuild_props
-        EntryPoints:
-          - src/handlers/metric-definition-crud.ts
-  PostMetricDefinitionFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/handlers/metric-definition-crud.handlePostRequest
-      Policies:
-        - DynamoDBWritePolicy:
-            TableName: !Ref MetricDefinitionTable
-      Environment:
-        Variables:
-          METRIC_DEFINITION_TABLE_NAME: !Ref MetricDefinitionTable
-      Events:
-        Api:
+        Create:
           Type: Api
           Properties:
             Path: /metric-definitions/
@@ -498,24 +457,13 @@ Resources:
               Required: true
               ValidateBody: true
               ValidateParameters: false
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        <<: *esbuild_props
-        EntryPoints:
-          - src/handlers/metric-definition-crud.ts
-  PutMetricDefinitionFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/handlers/metric-definition-crud.handlePutRequest
-      Policies:
-        - DynamoDBWritePolicy:
-            TableName: !Ref MetricDefinitionTable
-      Environment:
-        Variables:
-          METRIC_DEFINITION_TABLE_NAME: !Ref MetricDefinitionTable
-      Events:
-        Api:
+        Read:
+          Type: Api
+          Properties:
+            Path: /metric-definitions/{id}
+            Method: GET
+            RestApiId: !Ref RestApi
+        Update:
           Type: Api
           Properties:
             Path: /metric-definitions/{id}
@@ -526,24 +474,7 @@ Resources:
               Required: true
               ValidateBody: true
               ValidateParameters: false
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        <<: *esbuild_props
-        EntryPoints:
-          - src/handlers/metric-definition-crud.ts
-  DeleteMetricDefinitionFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/handlers/metric-definition-crud.handleDeleteRequest
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref MetricDefinitionTable
-      Environment:
-        Variables:
-          METRIC_DEFINITION_TABLE_NAME: !Ref MetricDefinitionTable
-      Events:
-        Api:
+        Delete:
           Type: Api
           Properties:
             Path: /metric-definitions/{id}
