@@ -59,7 +59,7 @@ describe("Test handlePostRequest", () => {
     test_rejection_if_missing_orgId(ddbMock, handlePostRequest);
   });
 
-  it("should override user-provided benchmark-definition id and inject use-case, environment and product names", async () => {
+  it("should override user-provided benchmark-definition id and last updated date", async () => {
     const eventWithId: Partial<APIGatewayProxyEvent> = {
       headers: {
         "content-type": "application/json",
@@ -78,56 +78,14 @@ describe("Test handlePostRequest", () => {
         environmentId: "the-environment-id",
         productId: "the-product-id",
         jenkinsJobUrl: "the-jenkins-job-url",
+        lastUpdatedOn: 123456,
         tags: [{ name: "the-tag-name", value: "the-tag-value" }],
       }),
     };
 
-    ddbMock
-      .on(GetItemCommand, {
-        ExpressionAttributeNames: { "#N": "name" },
-        ProjectionExpression: "#N",
-        Key: {
-          orgId: { S: "the-org-id" },
-          id: { S: "the-use-case-id" },
-        },
-      })
-      .resolves({
-        Item: {
-          name: { S: "the-use-case-name" },
-        },
-      });
-    ddbMock
-      .on(GetItemCommand, {
-        ExpressionAttributeNames: { "#N": "name" },
-        ProjectionExpression: "#N",
-        Key: {
-          orgId: { S: "the-org-id" },
-          id: { S: "the-environment-id" },
-        },
-      })
-      .resolves({
-        Item: {
-          name: { S: "the-environment-name" },
-        },
-      });
-    ddbMock
-      .on(GetItemCommand, {
-        ExpressionAttributeNames: { "#N": "name" },
-        ProjectionExpression: "#N",
-        Key: {
-          orgId: { S: "the-org-id" },
-          id: { S: "the-product-id" },
-        },
-      })
-      .resolves({
-        Item: {
-          name: { S: "the-product-name" },
-        },
-      });
-
     const result = await handlePostRequest(eventWithId as APIGatewayProxyEvent);
 
-    expect(ddbMock.calls().length).toEqual(4);
+    expect(ddbMock.calls().length).toEqual(1);
     expect(ddbMock).toHaveReceivedCommandWith(PutItemCommand, {
       TableName: undefined,
       Item: {
@@ -147,9 +105,6 @@ describe("Test handlePostRequest", () => {
             },
           ],
         },
-        useCaseName: { S: "the-use-case-name" },
-        environmentName: { S: "the-environment-name" },
-        productName: { S: "the-product-name" },
         lastUpdatedOn: { N: "1706201101633" },
       },
     });
@@ -165,9 +120,6 @@ describe("Test handlePostRequest", () => {
         productId: "the-product-id",
         jenkinsJobUrl: "the-jenkins-job-url",
         tags: [{ name: "the-tag-name", value: "the-tag-value" }],
-        useCaseName: "the-use-case-name",
-        environmentName: "the-environment-name",
-        productName: "the-product-name",
         lastUpdatedOn: 1706201101633,
       }),
     });
@@ -279,9 +231,6 @@ describe("Test handleGetRequest", () => {
               },
             ],
           },
-          useCaseName: { S: "the-use-case-name" },
-          environmentName: { S: "the-environment-name" },
-          productName: { S: "the-product-name" },
           lastUpdatedOn: { N: "1706201101633" },
         },
       });
@@ -307,9 +256,6 @@ describe("Test handleGetRequest", () => {
         productId: "the-product-id",
         jenkinsJobUrl: "the-jenkins-job-url",
         tags: [{ name: "the-tag-name", value: "the-tag-value" }],
-        useCaseName: "the-use-case-name",
-        environmentName: "the-environment-name",
-        productName: "the-product-name",
         lastUpdatedOn: 1706201101633,
       }),
     });
@@ -401,56 +347,14 @@ describe("Test handlePutRequest", () => {
         environmentId: "the-updated-environment-id",
         productId: "the-updated-product-id",
         jenkinsJobUrl: "the-jenkins-job-url",
+        lastUpdatedOn: 123456,
         tags: [{ name: "the-tag-name", value: "the-tag-value" }],
       }),
     };
 
-    ddbMock
-      .on(GetItemCommand, {
-        ExpressionAttributeNames: { "#N": "name" },
-        ProjectionExpression: "#N",
-        Key: {
-          orgId: { S: "the-org-id" },
-          id: { S: "the-updated-use-case-id" },
-        },
-      })
-      .resolves({
-        Item: {
-          name: { S: "the-updated-use-case-name" },
-        },
-      });
-    ddbMock
-      .on(GetItemCommand, {
-        ExpressionAttributeNames: { "#N": "name" },
-        ProjectionExpression: "#N",
-        Key: {
-          orgId: { S: "the-org-id" },
-          id: { S: "the-updated-environment-id" },
-        },
-      })
-      .resolves({
-        Item: {
-          name: { S: "the-updated-environment-name" },
-        },
-      });
-    ddbMock
-      .on(GetItemCommand, {
-        ExpressionAttributeNames: { "#N": "name" },
-        ProjectionExpression: "#N",
-        Key: {
-          orgId: { S: "the-org-id" },
-          id: { S: "the-updated-product-id" },
-        },
-      })
-      .resolves({
-        Item: {
-          name: { S: "the-updated-product-name" },
-        },
-      });
-
     const result = await handlePutRequest(eventWithId as APIGatewayProxyEvent);
 
-    expect(ddbMock.calls().length).toEqual(4);
+    expect(ddbMock.calls().length).toEqual(1);
     expect(ddbMock).toHaveReceivedCommandWith(PutItemCommand, {
       ConditionExpression: "attribute_exists(orgId) AND attribute_exists(id)",
       TableName: undefined,
@@ -471,9 +375,6 @@ describe("Test handlePutRequest", () => {
             },
           ],
         },
-        useCaseName: { S: "the-updated-use-case-name" },
-        environmentName: { S: "the-updated-environment-name" },
-        productName: { S: "the-updated-product-name" },
         lastUpdatedOn: { N: "1706201101633" },
       },
     });
@@ -489,9 +390,6 @@ describe("Test handlePutRequest", () => {
         productId: "the-updated-product-id",
         jenkinsJobUrl: "the-jenkins-job-url",
         tags: [{ name: "the-tag-name", value: "the-tag-value" }],
-        useCaseName: "the-updated-use-case-name",
-        environmentName: "the-updated-environment-name",
-        productName: "the-updated-product-name",
         lastUpdatedOn: 1706201101633,
       }),
     });
@@ -524,21 +422,6 @@ describe("Test handlePutRequest", () => {
     };
 
     ddbMock
-      .resolvesOnce({
-        Item: {
-          name: { S: "the-updated-use-case-name" },
-        },
-      })
-      .resolvesOnce({
-        Item: {
-          name: { S: "the-updated-environment-name" },
-        },
-      })
-      .resolvesOnce({
-        Item: {
-          name: { S: "the-updated-product-name" },
-        },
-      })
       .callsFake((input) => {
         throw new ConditionalCheckFailedException({
           message: "mocked rejection",
@@ -548,7 +431,7 @@ describe("Test handlePutRequest", () => {
 
     const result = await handlePutRequest(eventWithId as APIGatewayProxyEvent);
 
-    expect(ddbMock.calls().length).toEqual(4);
+    expect(ddbMock.calls().length).toEqual(1);
     expect(ddbMock).toHaveReceivedCommandWith(PutItemCommand, {
       ConditionExpression: "attribute_exists(orgId) AND attribute_exists(id)",
       TableName: undefined,
@@ -569,9 +452,6 @@ describe("Test handlePutRequest", () => {
             },
           ],
         },
-        useCaseName: { S: "the-updated-use-case-name" },
-        environmentName: { S: "the-updated-environment-name" },
-        productName: { S: "the-updated-product-name" },
         lastUpdatedOn: { N: "1706201101633" },
       },
     });
@@ -740,9 +620,6 @@ describe("Test handleGetAllRequest", () => {
           "#PI": "productId",
           "#J": "jenkinsJobUrl",
           "#T": "tags",
-          "#UN": "useCaseName",
-          "#EN": "environmentName",
-          "#PN": "productName",
           "#L": "lastUpdatedOn",
         },
         ExpressionAttributeValues: {
@@ -751,7 +628,7 @@ describe("Test handleGetAllRequest", () => {
           },
         },
         FilterExpression: "orgId = :O",
-        ProjectionExpression: "#O, #I, #UI, #EI, #PI, #J, #T, #UN, #EN, #PN, #L",
+        ProjectionExpression: "#O, #I, #UI, #EI, #PI, #J, #T, #L",
       })
       .resolves({
         Count: 3,
@@ -773,9 +650,6 @@ describe("Test handleGetAllRequest", () => {
                 },
               ],
             },
-            useCaseName: { S: "the-use-case-name-1" },
-            environmentName: { S: "the-environment-name-1" },
-            productName: { S: "the-product-name-1" },
             lastUpdatedOn: { N: "1706201101633" },
           },
           {
@@ -795,9 +669,6 @@ describe("Test handleGetAllRequest", () => {
                 },
               ],
             },
-            useCaseName: { S: "the-use-case-name-2" },
-            environmentName: { S: "the-environment-name-2" },
-            productName: { S: "the-product-name-2" },
             lastUpdatedOn: { N: "1706201101632" },
           },
           {
@@ -817,9 +688,6 @@ describe("Test handleGetAllRequest", () => {
                 },
               ],
             },
-            useCaseName: { S: "the-use-case-name-3" },
-            environmentName: { S: "the-environment-name-3" },
-            productName: { S: "the-product-name-3" },
             lastUpdatedOn: { N: "1706201101631" },
           },
         ],
@@ -839,9 +707,6 @@ describe("Test handleGetAllRequest", () => {
         "#PI": "productId",
         "#J": "jenkinsJobUrl",
         "#T": "tags",
-        "#UN": "useCaseName",
-        "#EN": "environmentName",
-        "#PN": "productName",
         "#L": "lastUpdatedOn",
       },
       ExpressionAttributeValues: {
@@ -850,7 +715,7 @@ describe("Test handleGetAllRequest", () => {
         },
       },
       FilterExpression: "orgId = :O",
-      ProjectionExpression: "#O, #I, #UI, #EI, #PI, #J, #T, #UN, #EN, #PN, #L",
+      ProjectionExpression: "#O, #I, #UI, #EI, #PI, #J, #T, #L",
     });
     expect(result).toEqual({
       statusCode: 200,
@@ -865,9 +730,6 @@ describe("Test handleGetAllRequest", () => {
           productId: "the-product-id-1",
           jenkinsJobUrl: "the-jenkins-job-url-1",
           tags: [{ name: "the-tag-name", value: "the-tag-value" }],
-          useCaseName: "the-use-case-name-1",
-          environmentName: "the-environment-name-1",
-          productName: "the-product-name-1",
           lastUpdatedOn: 1706201101633,
         },
         {
@@ -877,9 +739,6 @@ describe("Test handleGetAllRequest", () => {
           productId: "the-product-id-2",
           jenkinsJobUrl: "the-jenkins-job-url-2",
           tags: [{ name: "the-tag-name", value: "the-tag-value" }],
-          useCaseName: "the-use-case-name-2",
-          environmentName: "the-environment-name-2",
-          productName: "the-product-name-2",
           lastUpdatedOn: 1706201101632,
         },
         {
@@ -889,9 +748,6 @@ describe("Test handleGetAllRequest", () => {
           productId: "the-product-id-3",
           jenkinsJobUrl: "the-jenkins-job-url-3",
           tags: [{ name: "the-tag-name", value: "the-tag-value" }],
-          useCaseName: "the-use-case-name-3",
-          environmentName: "the-environment-name-3",
-          productName: "the-product-name-3",
           lastUpdatedOn: 1706201101631,
         },
       ]),

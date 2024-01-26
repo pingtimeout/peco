@@ -11,9 +11,6 @@ import {
   ConditionalCheckFailedException,
 } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
-import { UseCaseKey } from "../model/UseCase";
-import { EnvironmentKey } from "../model/Environment";
-import { ProductKey } from "../model/Product";
 import {
   BenchmarkDefinition,
   BenchmarkDefinitionKey,
@@ -22,9 +19,6 @@ import { StatusCodes } from "http-status-codes";
 
 const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
-const useCaseTableName = process.env.USE_CASE_TABLE_NAME;
-const environmentTableName = process.env.ENVIRONMENT_TABLE_NAME;
-const productTableName = process.env.PRODUCT_TABLE_NAME;
 const benchmarkDefinitionTableName =
   process.env.BENCHMARK_DEFINITION_TABLE_NAME;
 
@@ -47,7 +41,7 @@ export const handleGetAllRequest = async (
         ExpressionAttributeValues: {
           ":O": { S: orgId },
         },
-        ProjectionExpression: "#O, #I, #UI, #EI, #PI, #J, #T, #UN, #EN, #PN, #L",
+        ProjectionExpression: "#O, #I, #UI, #EI, #PI, #J, #T, #L",
         ExpressionAttributeNames: {
           "#O": "orgId",
           "#I": "id",
@@ -56,9 +50,6 @@ export const handleGetAllRequest = async (
           "#PI": "productId",
           "#J": "jenkinsJobUrl",
           "#T": "tags",
-          "#UN": "useCaseName",
-          "#EN": "environmentName",
-          "#PN": "productName",
           "#L": "lastUpdatedOn",
         },
       })
@@ -165,62 +156,6 @@ export const handlePostRequest = async (
   parsedBenchmarkDefinition["id"] = generateUuid();
 
   try {
-    const useCaseId: string = parsedBenchmarkDefinition["useCaseId"];
-    if (useCaseId === undefined) {
-      return makeApiGwResponse(StatusCodes.BAD_REQUEST, {
-        message: "Missing use-case id",
-      });
-    }
-    const useCaseResponse = await ddbDocClient.send(
-      new GetItemCommand({
-        TableName: useCaseTableName,
-        Key: new UseCaseKey(orgId, useCaseId).toAttributeValues(),
-        ProjectionExpression: "#N",
-        ExpressionAttributeNames: { "#N": "name" },
-      })
-    );
-    if (useCaseResponse.Item === undefined) {
-      return makeApiGwResponse(StatusCodes.NOT_FOUND, { message: "Not Found" });
-    }
-    const useCaseName: string = useCaseResponse.Item["name"].S!;
-
-    const environmentId: string = parsedBenchmarkDefinition["environmentId"];
-    if (environmentId === undefined) {
-      return makeApiGwResponse(StatusCodes.BAD_REQUEST, {
-        message: "Missing environment id",
-      });
-    }
-    const environmentResponse = await ddbDocClient.send(
-      new GetItemCommand({
-        TableName: environmentTableName,
-        Key: new EnvironmentKey(orgId, environmentId).toAttributeValues(),
-        ProjectionExpression: "#N",
-        ExpressionAttributeNames: { "#N": "name" },
-      })
-    );
-    if (environmentResponse.Item === undefined) {
-      return makeApiGwResponse(StatusCodes.NOT_FOUND, { message: "Not Found" });
-    }
-    const environmentName: string = environmentResponse.Item["name"].S!;
-
-    const productId: string = parsedBenchmarkDefinition["productId"];
-    if (productId === undefined) {
-      return makeApiGwResponse(StatusCodes.BAD_REQUEST, {
-        message: "Missing product id",
-      });
-    }
-    const productResponse = await ddbDocClient.send(
-      new GetItemCommand({
-        TableName: productTableName,
-        Key: new ProductKey(orgId, productId).toAttributeValues(),
-        ProjectionExpression: "#N",
-        ExpressionAttributeNames: { "#N": "name" },
-      })
-    );
-    if (productResponse.Item === undefined) {
-      return makeApiGwResponse(StatusCodes.NOT_FOUND, { message: "Not Found" });
-    }
-    const productName: string = productResponse.Item["name"].S!;
     const lastUpdatedOn: number = currentTimestamp();
     console.debug({
       event: "Marking benchmark as last updated on",
@@ -230,9 +165,6 @@ export const handlePostRequest = async (
     const benchmarkDefinition = BenchmarkDefinition.fromApiModel(
       orgId,
       parsedBenchmarkDefinition,
-      useCaseName,
-      environmentName,
-      productName,
       lastUpdatedOn
     );
     console.debug({
@@ -296,62 +228,6 @@ export const handlePutRequest = async (
   }
 
   try {
-    const useCaseId: string = parsedBenchmarkDefinition["useCaseId"];
-    if (useCaseId === undefined) {
-      return makeApiGwResponse(StatusCodes.BAD_REQUEST, {
-        message: "Missing use-case id",
-      });
-    }
-    const useCaseResponse = await ddbDocClient.send(
-      new GetItemCommand({
-        TableName: useCaseTableName,
-        Key: new UseCaseKey(orgId, useCaseId).toAttributeValues(),
-        ProjectionExpression: "#N",
-        ExpressionAttributeNames: { "#N": "name" },
-      })
-    );
-    if (useCaseResponse.Item === undefined) {
-      return makeApiGwResponse(StatusCodes.NOT_FOUND, { message: "Not Found" });
-    }
-    const useCaseName: string = useCaseResponse.Item["name"].S!;
-
-    const environmentId: string = parsedBenchmarkDefinition["environmentId"];
-    if (environmentId === undefined) {
-      return makeApiGwResponse(StatusCodes.BAD_REQUEST, {
-        message: "Missing environment id",
-      });
-    }
-    const environmentResponse = await ddbDocClient.send(
-      new GetItemCommand({
-        TableName: environmentTableName,
-        Key: new EnvironmentKey(orgId, environmentId).toAttributeValues(),
-        ProjectionExpression: "#N",
-        ExpressionAttributeNames: { "#N": "name" },
-      })
-    );
-    if (environmentResponse.Item === undefined) {
-      return makeApiGwResponse(StatusCodes.NOT_FOUND, { message: "Not Found" });
-    }
-    const environmentName: string = environmentResponse.Item["name"].S!;
-
-    const productId: string = parsedBenchmarkDefinition["productId"];
-    if (productId === undefined) {
-      return makeApiGwResponse(StatusCodes.BAD_REQUEST, {
-        message: "Missing product id",
-      });
-    }
-    const productResponse = await ddbDocClient.send(
-      new GetItemCommand({
-        TableName: productTableName,
-        Key: new ProductKey(orgId, productId).toAttributeValues(),
-        ProjectionExpression: "#N",
-        ExpressionAttributeNames: { "#N": "name" },
-      })
-    );
-    if (productResponse.Item === undefined) {
-      return makeApiGwResponse(StatusCodes.NOT_FOUND, { message: "Not Found" });
-    }
-    const productName: string = productResponse.Item["name"].S!;
     const lastUpdatedOn: number = currentTimestamp();
     console.debug({
       event: "Marking benchmark as last updated on",
@@ -361,9 +237,6 @@ export const handlePutRequest = async (
     const benchmarkDefinition = BenchmarkDefinition.fromApiModel(
       orgId,
       parsedBenchmarkDefinition,
-      useCaseName,
-      environmentName,
-      productName,
       lastUpdatedOn
     );
     console.debug({

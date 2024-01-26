@@ -8,9 +8,6 @@ export class BenchmarkDefinition {
   productId: string;
   jenkinsJobUrl: string | undefined;
   tags: Tag[] | undefined;
-  useCaseName: string;
-  environmentName: string;
-  productName: string;
   lastUpdatedOn: number;
 
   constructor(
@@ -21,9 +18,6 @@ export class BenchmarkDefinition {
     productId: string,
     jenkinsJobUrl: string | undefined,
     tags: Tag[] | undefined,
-    useCaseName: string,
-    environmentName: string,
-    productName: string,
     lastUpdatedOn: number,
   ) {
     this.key = new BenchmarkDefinitionKey(orgId, id);
@@ -32,9 +26,6 @@ export class BenchmarkDefinition {
     this.productId = productId;
     this.jenkinsJobUrl = jenkinsJobUrl;
     this.tags = tags;
-    this.useCaseName = useCaseName;
-    this.environmentName = environmentName;
-    this.productName = productName;
     this.lastUpdatedOn = lastUpdatedOn;
   }
 
@@ -48,9 +39,6 @@ export class BenchmarkDefinition {
       ...(this.tags && {
         tags: { L: this.tags.map((tag) => tag.toMapAttributeValue()) },
       }),
-      ...{ useCaseName: { S: this.useCaseName } },
-      ...{ environmentName: { S: this.environmentName } },
-      ...{ productName: { S: this.productName } },
       ...{ lastUpdatedOn: { N: "" + this.lastUpdatedOn } },
     };
   }
@@ -63,9 +51,6 @@ export class BenchmarkDefinition {
       ...{ productId: this.productId },
       ...(this.jenkinsJobUrl && { jenkinsJobUrl: this.jenkinsJobUrl }),
       ...(this.tags && { tags: this.tags.map((tag) => tag.toApiModel()) }),
-      ...{ useCaseName: this.useCaseName },
-      ...{ environmentName: this.environmentName },
-      ...{ productName: this.productName },
       ...{ lastUpdatedOn: this.lastUpdatedOn },
     };
   }
@@ -73,9 +58,6 @@ export class BenchmarkDefinition {
   static fromApiModel(
     orgId: string,
     parsedBenchmarkDefinition: any,
-    useCaseName: string,
-    environmentName: string,
-    productName: string,
     lastUpdatedOn: number,
   ): BenchmarkDefinition {
     return new BenchmarkDefinition(
@@ -88,9 +70,6 @@ export class BenchmarkDefinition {
       parsedBenchmarkDefinition["tags"]?.map(
         (tag) => new Tag(tag["name"], tag["value"])
       ),
-      useCaseName,
-      environmentName,
-      productName,
       lastUpdatedOn,
     );
   }
@@ -109,9 +88,6 @@ export class BenchmarkDefinition {
         attrs["productId"].S!,
         attrs["jenkinsJobUrl"]?.S,
         attrs["tags"].L?.map((tag) => new Tag(tag.M!.name.S!, tag.M!.value.S!)),
-        attrs["useCaseName"].S!,
-        attrs["environmentName"].S!,
-        attrs["productName"].S!,
         parseInt(attrs["lastUpdatedOn"].N!),
       );
     }
