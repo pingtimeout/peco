@@ -17,7 +17,36 @@ const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
 const useCaseTableName = process.env.USE_CASE_TABLE_NAME;
 
-export const handleGetAllRequest = async (
+export const handleAnyRequest = async (
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> => {
+  const useCaseId: string | undefined = event.pathParameters?.id;
+  const method: string = event.httpMethod;
+  console.debug({
+    event: "Dispatching query",
+    data: {
+      httpMethod: method,
+      useCaseId: useCaseId,
+    },
+  });
+  if (useCaseId === undefined && method === "GET") {
+    return await handleGetAllRequest(event);
+  } else if (useCaseId === undefined && method === "POST") {
+    return await handlePostRequest(event);
+  } else if (method === "GET") {
+    return await handleGetRequest(event);
+  } else if (method === "PUT") {
+    return await handlePutRequest(event);
+  } else if (method === "DELETE") {
+    return await handleDeleteRequest(event);
+  } else {
+    return makeApiGwResponse(StatusCodes.BAD_REQUEST, {
+      message: "Unknown path/method combination",
+    });
+  }
+};
+
+const handleGetAllRequest = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   const orgId: string | undefined = extractOrgId(event);
@@ -55,14 +84,14 @@ export const handleGetAllRequest = async (
       useCases.map((u) => u.toApiModel())
     );
   } catch (err) {
-    console.log("Failed to fetch use-case", err.stack);
+    console.error({ event: "Failed to fetch use-cases", data: err.stack });
     return makeApiGwResponse(StatusCodes.INTERNAL_SERVER_ERROR, {
       message: "Internal Server Error",
     });
   }
 };
 
-export const handleGetRequest = async (
+const handleGetRequest = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   const orgId: string | undefined = extractOrgId(event);
@@ -97,14 +126,14 @@ export const handleGetRequest = async (
       return makeApiGwResponse(StatusCodes.OK, useCase.toApiModel());
     }
   } catch (err) {
-    console.log("Failed to fetch use-case", err.stack);
+    console.error({ event: "Failed to fetch use-case", data: err.stack });
     return makeApiGwResponse(StatusCodes.INTERNAL_SERVER_ERROR, {
       message: "Internal Server Error",
     });
   }
 };
 
-export const handlePostRequest = async (
+const handlePostRequest = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   const contentType = event.headers["content-type"];
@@ -137,14 +166,14 @@ export const handlePostRequest = async (
     console.debug({ event: "Added use-case" });
     return makeApiGwResponse(StatusCodes.OK, parsedUseCase);
   } catch (err) {
-    console.log("Failed to add use-case", err.stack);
+    console.error({ event: "Failed to add use-case", data: err.stack });
     return makeApiGwResponse(StatusCodes.INTERNAL_SERVER_ERROR, {
       message: "Internal Server Error",
     });
   }
 };
 
-export const handlePutRequest = async (
+const handlePutRequest = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   const contentType = event.headers["content-type"];
@@ -196,7 +225,7 @@ export const handlePutRequest = async (
         message: "Not Found",
       });
     } else {
-      console.log("Failed to update use-case", err.stack);
+      console.error({ event: "Failed to update use-case", data: err.stack });
       return makeApiGwResponse(StatusCodes.INTERNAL_SERVER_ERROR, {
         message: "Internal Server Error",
       });
@@ -204,7 +233,7 @@ export const handlePutRequest = async (
   }
 };
 
-export const handleDeleteRequest = async (
+const handleDeleteRequest = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   const orgId: string | undefined = extractOrgId(event);
@@ -239,7 +268,7 @@ export const handleDeleteRequest = async (
         message: "Not Found",
       });
     } else {
-      console.log("Failed to delete use-case", err.stack);
+      console.error({ event: "Failed to delete use-case", data: err.stack });
       return makeApiGwResponse(StatusCodes.INTERNAL_SERVER_ERROR, {
         message: "Internal Server Error",
       });

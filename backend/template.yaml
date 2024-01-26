@@ -258,64 +258,24 @@ Resources:
         - nodejs20.x
       RetentionPolicy: Delete
 
-  GetAllUseCasesFunction:
+  CrudUseCasesFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: src/handlers/use-case-crud.handleGetAllRequest
+      Handler: src/handlers/use-case-crud.handleAnyRequest
       Policies:
-        - DynamoDBReadPolicy:
+        - DynamoDBCrudPolicy:
             TableName: !Ref UseCaseTable
       Environment:
         Variables:
           USE_CASE_TABLE_NAME: !Ref UseCaseTable
       Events:
-        Api:
+        ListAll:
           Type: Api
           Properties:
             Path: /use-cases/
             Method: GET
             RestApiId: !Ref RestApi
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        <<: *esbuild_props
-        EntryPoints:
-          - src/handlers/use-case-crud.ts
-  GetUseCaseFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/handlers/use-case-crud.handleGetRequest
-      Policies:
-        - DynamoDBReadPolicy:
-            TableName: !Ref UseCaseTable
-      Environment:
-        Variables:
-          USE_CASE_TABLE_NAME: !Ref UseCaseTable
-      Events:
-        Api:
-          Type: Api
-          Properties:
-            Path: /use-cases/{id}
-            Method: GET
-            RestApiId: !Ref RestApi
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        <<: *esbuild_props
-        EntryPoints:
-          - src/handlers/use-case-crud.ts
-  PostUseCaseFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/handlers/use-case-crud.handlePostRequest
-      Policies:
-        - DynamoDBWritePolicy:
-            TableName: !Ref UseCaseTable
-      Environment:
-        Variables:
-          USE_CASE_TABLE_NAME: !Ref UseCaseTable
-      Events:
-        Api:
+        Create:
           Type: Api
           Properties:
             Path: /use-cases/
@@ -326,24 +286,13 @@ Resources:
               Required: true
               ValidateBody: true
               ValidateParameters: false
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        <<: *esbuild_props
-        EntryPoints:
-          - src/handlers/use-case-crud.ts
-  PutUseCaseFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/handlers/use-case-crud.handlePutRequest
-      Policies:
-        - DynamoDBWritePolicy:
-            TableName: !Ref UseCaseTable
-      Environment:
-        Variables:
-          USE_CASE_TABLE_NAME: !Ref UseCaseTable
-      Events:
-        Api:
+        Read:
+          Type: Api
+          Properties:
+            Path: /use-cases/{id}
+            Method: GET
+            RestApiId: !Ref RestApi
+        Update:
           Type: Api
           Properties:
             Path: /use-cases/{id}
@@ -354,24 +303,7 @@ Resources:
               Required: true
               ValidateBody: true
               ValidateParameters: false
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        <<: *esbuild_props
-        EntryPoints:
-          - src/handlers/use-case-crud.ts
-  DeleteUseCaseFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/handlers/use-case-crud.handleDeleteRequest
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref UseCaseTable
-      Environment:
-        Variables:
-          USE_CASE_TABLE_NAME: !Ref UseCaseTable
-      Events:
-        Api:
+        Delete:
           Type: Api
           Properties:
             Path: /use-cases/{id}
@@ -383,6 +315,63 @@ Resources:
         <<: *esbuild_props
         EntryPoints:
           - src/handlers/use-case-crud.ts
+  CrudProductsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/product-crud.handleAnyRequest
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProductTable
+      Environment:
+        Variables:
+          PRODUCT_TABLE_NAME: !Ref ProductTable
+      Events:
+        ListAll:
+          Type: Api
+          Properties:
+            Path: /products/
+            Method: GET
+            RestApiId: !Ref RestApi
+        Create:
+          Type: Api
+          Properties:
+            Path: /products/
+            Method: POST
+            RestApiId: !Ref RestApi
+            RequestModel:
+              Model: product
+              Required: true
+              ValidateBody: true
+              ValidateParameters: false
+        Read:
+          Type: Api
+          Properties:
+            Path: /products/{id}
+            Method: GET
+            RestApiId: !Ref RestApi
+        Update:
+          Type: Api
+          Properties:
+            Path: /products/{id}
+            Method: PUT
+            RestApiId: !Ref RestApi
+            RequestModel:
+              Model: product
+              Required: true
+              ValidateBody: true
+              ValidateParameters: false
+        Delete:
+          Type: Api
+          Properties:
+            Path: /products/{id}
+            Method: DELETE
+            RestApiId: !Ref RestApi
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        <<: *esbuild_props
+        EntryPoints:
+          - src/handlers/product-crud.ts
 
   GetAllEnvironmensFunction:
     Type: AWS::Serverless::Function
@@ -509,132 +498,6 @@ Resources:
         <<: *esbuild_props
         EntryPoints:
           - src/handlers/environment-crud.ts
-
-  GetAllProductFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/handlers/product-crud.handleGetAllRequest
-      Policies:
-        - DynamoDBReadPolicy:
-            TableName: !Ref ProductTable
-      Environment:
-        Variables:
-          PRODUCT_TABLE_NAME: !Ref ProductTable
-      Events:
-        Api:
-          Type: Api
-          Properties:
-            Path: /products/
-            Method: GET
-            RestApiId: !Ref RestApi
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        <<: *esbuild_props
-        EntryPoints:
-          - src/handlers/product-crud.ts
-  GetProductFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/handlers/product-crud.handleGetRequest
-      Policies:
-        - DynamoDBReadPolicy:
-            TableName: !Ref ProductTable
-      Environment:
-        Variables:
-          PRODUCT_TABLE_NAME: !Ref ProductTable
-      Events:
-        Api:
-          Type: Api
-          Properties:
-            Path: /products/{id}
-            Method: GET
-            RestApiId: !Ref RestApi
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        <<: *esbuild_props
-        EntryPoints:
-          - src/handlers/product-crud.ts
-  PostProductFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/handlers/product-crud.handlePostRequest
-      Policies:
-        - DynamoDBWritePolicy:
-            TableName: !Ref ProductTable
-      Environment:
-        Variables:
-          PRODUCT_TABLE_NAME: !Ref ProductTable
-      Events:
-        Api:
-          Type: Api
-          Properties:
-            Path: /products/
-            Method: POST
-            RestApiId: !Ref RestApi
-            RequestModel:
-              Model: product
-              Required: true
-              ValidateBody: true
-              ValidateParameters: false
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        <<: *esbuild_props
-        EntryPoints:
-          - src/handlers/product-crud.ts
-  PutProductFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/handlers/product-crud.handlePutRequest
-      Policies:
-        - DynamoDBWritePolicy:
-            TableName: !Ref ProductTable
-      Environment:
-        Variables:
-          PRODUCT_TABLE_NAME: !Ref ProductTable
-      Events:
-        Api:
-          Type: Api
-          Properties:
-            Path: /products/{id}
-            Method: PUT
-            RestApiId: !Ref RestApi
-            RequestModel:
-              Model: product
-              Required: true
-              ValidateBody: true
-              ValidateParameters: false
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        <<: *esbuild_props
-        EntryPoints:
-          - src/handlers/product-crud.ts
-  DeleteProductFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/handlers/product-crud.handleDeleteRequest
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref ProductTable
-      Environment:
-        Variables:
-          PRODUCT_TABLE_NAME: !Ref ProductTable
-      Events:
-        Api:
-          Type: Api
-          Properties:
-            Path: /products/{id}
-            Method: DELETE
-            RestApiId: !Ref RestApi
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        <<: *esbuild_props
-        EntryPoints:
-          - src/handlers/product-crud.ts
 
   GetAllMetricDefinitionFunction:
     Type: AWS::Serverless::Function
