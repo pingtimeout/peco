@@ -258,16 +258,31 @@ Resources:
         - nodejs20.x
       RetentionPolicy: Delete
 
+  UseCasesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: UseCases
+      AttributeDefinitions:
+        - AttributeName: orgId
+          AttributeType: S
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: orgId
+          KeyType: HASH
+        - AttributeName: id
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
   CrudUseCasesFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: src/handlers/use-case-crud.handleAnyRequest
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref UseCaseTable
+            TableName: !Ref UseCasesTable
       Environment:
         Variables:
-          USE_CASE_TABLE_NAME: !Ref UseCaseTable
+          USE_CASE_TABLE_NAME: !Ref UseCasesTable
       Events:
         ListAll:
           Type: Api
@@ -322,16 +337,31 @@ Resources:
       RetentionInDays: 30
       LogGroupName: !Join ["", ["/aws/lambda/", !Ref CrudUseCasesFunction]]
 
+  EnvironmentsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Environments
+      AttributeDefinitions:
+        - AttributeName: orgId
+          AttributeType: S
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: orgId
+          KeyType: HASH
+        - AttributeName: id
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
   CrudEnvironmentFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: src/handlers/environment-crud.handleAnyRequest
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref EnvironmentTable
+            TableName: !Ref EnvironmentsTable
       Environment:
         Variables:
-          ENVIRONMENT_TABLE_NAME: !Ref EnvironmentTable
+          ENVIRONMENT_TABLE_NAME: !Ref EnvironmentsTable
       Events:
         ListAll:
           Type: Api
@@ -386,16 +416,31 @@ Resources:
       RetentionInDays: 30
       LogGroupName: !Join ["", ["/aws/lambda/", !Ref CrudEnvironmentFunction]]
 
+  ProductsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Products
+      AttributeDefinitions:
+        - AttributeName: orgId
+          AttributeType: S
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: orgId
+          KeyType: HASH
+        - AttributeName: id
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
   CrudProductsFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: src/handlers/product-crud.handleAnyRequest
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref ProductTable
+            TableName: !Ref ProductsTable
       Environment:
         Variables:
-          PRODUCT_TABLE_NAME: !Ref ProductTable
+          PRODUCT_TABLE_NAME: !Ref ProductsTable
       Events:
         ListAll:
           Type: Api
@@ -450,16 +495,31 @@ Resources:
       RetentionInDays: 30
       LogGroupName: !Join ["", ["/aws/lambda/", !Ref CrudProductsFunction]]
 
+  MetricDefinitionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: MetricDefinitions
+      AttributeDefinitions:
+        - AttributeName: orgId
+          AttributeType: S
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: orgId
+          KeyType: HASH
+        - AttributeName: id
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
   CrudMetricDefinitionsFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: src/handlers/metric-definition-crud.handleAnyRequest
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref MetricDefinitionTable
+            TableName: !Ref MetricDefinitionsTable
       Environment:
         Variables:
-          METRIC_DEFINITION_TABLE_NAME: !Ref MetricDefinitionTable
+          METRIC_DEFINITION_TABLE_NAME: !Ref MetricDefinitionsTable
       Events:
         ListAll:
           Type: Api
@@ -514,16 +574,31 @@ Resources:
       RetentionInDays: 30
       LogGroupName: !Join ["", ["/aws/lambda/", !Ref CrudMetricDefinitionsFunction]]
 
+  BenchmarkDefinitionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: BenchmarkDefinitions
+      AttributeDefinitions:
+        - AttributeName: orgId
+          AttributeType: S
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: orgId
+          KeyType: HASH
+        - AttributeName: id
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
   CrudBenchmarkDefinitionsFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: src/handlers/benchmark-definition-crud.handleAnyRequest
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref BenchmarkDefinitionTable
+            TableName: !Ref BenchmarkDefinitionsTable
       Environment:
         Variables:
-          BENCHMARK_DEFINITION_TABLE_NAME: !Ref BenchmarkDefinitionTable
+          BENCHMARK_DEFINITION_TABLE_NAME: !Ref BenchmarkDefinitionsTable
       Events:
         ListAll:
           Type: Api
@@ -577,82 +652,6 @@ Resources:
     Properties:
       RetentionInDays: 30
       LogGroupName: !Join ["", ["/aws/lambda/", !Ref CrudBenchmarkDefinitionsFunction]]
-
-  UseCaseTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: UseCases
-      AttributeDefinitions:
-        - AttributeName: orgId
-          AttributeType: S
-        - AttributeName: id
-          AttributeType: S
-      KeySchema:
-        - AttributeName: orgId
-          KeyType: HASH
-        - AttributeName: id
-          KeyType: RANGE
-      BillingMode: PAY_PER_REQUEST
-  EnvironmentTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: Environments
-      AttributeDefinitions:
-        - AttributeName: orgId
-          AttributeType: S
-        - AttributeName: id
-          AttributeType: S
-      KeySchema:
-        - AttributeName: orgId
-          KeyType: HASH
-        - AttributeName: id
-          KeyType: RANGE
-      BillingMode: PAY_PER_REQUEST
-  ProductTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: Products
-      AttributeDefinitions:
-        - AttributeName: orgId
-          AttributeType: S
-        - AttributeName: id
-          AttributeType: S
-      KeySchema:
-        - AttributeName: orgId
-          KeyType: HASH
-        - AttributeName: id
-          KeyType: RANGE
-      BillingMode: PAY_PER_REQUEST
-  MetricDefinitionTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: MetricDefinitions
-      AttributeDefinitions:
-        - AttributeName: orgId
-          AttributeType: S
-        - AttributeName: id
-          AttributeType: S
-      KeySchema:
-        - AttributeName: orgId
-          KeyType: HASH
-        - AttributeName: id
-          KeyType: RANGE
-      BillingMode: PAY_PER_REQUEST
-  BenchmarkDefinitionTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: BenchmarkDefinitions
-      AttributeDefinitions:
-        - AttributeName: orgId
-          AttributeType: S
-        - AttributeName: id
-          AttributeType: S
-      KeySchema:
-        - AttributeName: orgId
-          KeyType: HASH
-        - AttributeName: id
-          KeyType: RANGE
-      BillingMode: PAY_PER_REQUEST
 
   ApplicationResourceGroup:
     Type: AWS::ResourceGroups::Group
