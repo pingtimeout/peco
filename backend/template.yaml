@@ -315,6 +315,63 @@ Resources:
         <<: *esbuild_props
         EntryPoints:
           - src/handlers/use-case-crud.ts
+  CrudEnvironmentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/environment-crud.handleAnyRequest
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EnvironmentTable
+      Environment:
+        Variables:
+          ENVIRONMENT_TABLE_NAME: !Ref EnvironmentTable
+      Events:
+        ListAll:
+          Type: Api
+          Properties:
+            Path: /environments/
+            Method: GET
+            RestApiId: !Ref RestApi
+        Create:
+          Type: Api
+          Properties:
+            Path: /environments/
+            Method: POST
+            RestApiId: !Ref RestApi
+            RequestModel:
+              Model: environment
+              Required: true
+              ValidateBody: true
+              ValidateParameters: false
+        Read:
+          Type: Api
+          Properties:
+            Path: /environments/{id}
+            Method: GET
+            RestApiId: !Ref RestApi
+        Update:
+          Type: Api
+          Properties:
+            Path: /environments/{id}
+            Method: PUT
+            RestApiId: !Ref RestApi
+            RequestModel:
+              Model: environment
+              Required: true
+              ValidateBody: true
+              ValidateParameters: false
+        Delete:
+          Type: Api
+          Properties:
+            Path: /environments/{id}
+            Method: DELETE
+            RestApiId: !Ref RestApi
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        <<: *esbuild_props
+        EntryPoints:
+          - src/handlers/environment-crud.ts
   CrudProductsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -372,132 +429,6 @@ Resources:
         <<: *esbuild_props
         EntryPoints:
           - src/handlers/product-crud.ts
-
-  GetAllEnvironmensFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/handlers/environment-crud.handleGetAllRequest
-      Policies:
-        - DynamoDBReadPolicy:
-            TableName: !Ref EnvironmentTable
-      Environment:
-        Variables:
-          ENVIRONMENT_TABLE_NAME: !Ref EnvironmentTable
-      Events:
-        Api:
-          Type: Api
-          Properties:
-            Path: /environments/
-            Method: GET
-            RestApiId: !Ref RestApi
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        <<: *esbuild_props
-        EntryPoints:
-          - src/handlers/environment-crud.ts
-  GetEnvironmentFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/handlers/environment-crud.handleGetRequest
-      Policies:
-        - DynamoDBReadPolicy:
-            TableName: !Ref EnvironmentTable
-      Environment:
-        Variables:
-          ENVIRONMENT_TABLE_NAME: !Ref EnvironmentTable
-      Events:
-        Api:
-          Type: Api
-          Properties:
-            Path: /environments/{id}
-            Method: GET
-            RestApiId: !Ref RestApi
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        <<: *esbuild_props
-        EntryPoints:
-          - src/handlers/environment-crud.ts
-  PostEnvironmentFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/handlers/environment-crud.handlePostRequest
-      Policies:
-        - DynamoDBWritePolicy:
-            TableName: !Ref EnvironmentTable
-      Environment:
-        Variables:
-          ENVIRONMENT_TABLE_NAME: !Ref EnvironmentTable
-      Events:
-        Api:
-          Type: Api
-          Properties:
-            Path: /environments/
-            Method: POST
-            RestApiId: !Ref RestApi
-            RequestModel:
-              Model: environment
-              Required: true
-              ValidateBody: true
-              ValidateParameters: false
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        <<: *esbuild_props
-        EntryPoints:
-          - src/handlers/environment-crud.ts
-  PutEnvironmentFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/handlers/environment-crud.handlePutRequest
-      Policies:
-        - DynamoDBWritePolicy:
-            TableName: !Ref EnvironmentTable
-      Environment:
-        Variables:
-          ENVIRONMENT_TABLE_NAME: !Ref EnvironmentTable
-      Events:
-        Api:
-          Type: Api
-          Properties:
-            Path: /environments/{id}
-            Method: PUT
-            RestApiId: !Ref RestApi
-            RequestModel:
-              Model: environment
-              Required: true
-              ValidateBody: true
-              ValidateParameters: false
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        <<: *esbuild_props
-        EntryPoints:
-          - src/handlers/environment-crud.ts
-  DeleteEnvironmentFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/handlers/environment-crud.handleDeleteRequest
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref EnvironmentTable
-      Environment:
-        Variables:
-          ENVIRONMENT_TABLE_NAME: !Ref EnvironmentTable
-      Events:
-        Api:
-          Type: Api
-          Properties:
-            Path: /environments/{id}
-            Method: DELETE
-            RestApiId: !Ref RestApi
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        <<: *esbuild_props
-        EntryPoints:
-          - src/handlers/environment-crud.ts
 
   GetAllMetricDefinitionFunction:
     Type: AWS::Serverless::Function

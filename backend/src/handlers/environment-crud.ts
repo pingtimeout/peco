@@ -17,7 +17,36 @@ const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
 const environmentTableName = process.env.ENVIRONMENT_TABLE_NAME;
 
-export const handleGetAllRequest = async (
+export const handleAnyRequest = async (
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> => {
+  const productId: string | undefined = event.pathParameters?.id;
+  const method: string = event.httpMethod;
+  console.debug({
+    event: "Dispatching query",
+    data: {
+      httpMethod: method,
+      productId: productId,
+    },
+  });
+  if (productId === undefined && method === "GET") {
+    return await handleGetAllRequest(event);
+  } else if (productId === undefined && method === "POST") {
+    return await handlePostRequest(event);
+  } else if (method === "GET") {
+    return await handleGetRequest(event);
+  } else if (method === "PUT") {
+    return await handlePutRequest(event);
+  } else if (method === "DELETE") {
+    return await handleDeleteRequest(event);
+  } else {
+    return makeApiGwResponse(StatusCodes.BAD_REQUEST, {
+      message: "Unknown path/method combination",
+    });
+  }
+};
+
+const handleGetAllRequest = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   const orgId: string | undefined = extractOrgId(event);
@@ -46,23 +75,23 @@ export const handleGetAllRequest = async (
       })
     );
     const environments =
-      response.Items?.map((item) => Environment.fromAttributeValues(item)).filter(
-        (u) => u !== undefined
-      ) || [];
+      response.Items?.map((item) =>
+        Environment.fromAttributeValues(item)
+      ).filter((u) => u !== undefined) || [];
     console.debug({ event: "Fetched environments", data: environments });
     return makeApiGwResponse(
       StatusCodes.OK,
       environments.map((u) => u.toApiModel())
     );
   } catch (err) {
-    console.log("Failed to fetch environment", err.stack);
+    console.error({ event: "Failed to fetch environments", data: err.stack });
     return makeApiGwResponse(StatusCodes.INTERNAL_SERVER_ERROR, {
       message: "Internal Server Error",
     });
   }
 };
 
-export const handleGetRequest = async (
+const handleGetRequest = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   const orgId: string | undefined = extractOrgId(event);
@@ -97,14 +126,14 @@ export const handleGetRequest = async (
       return makeApiGwResponse(StatusCodes.OK, environment.toApiModel());
     }
   } catch (err) {
-    console.log("Failed to fetch environment", err.stack);
+    console.error({ event: "Failed to fetch environment", data: err.stack });
     return makeApiGwResponse(StatusCodes.INTERNAL_SERVER_ERROR, {
       message: "Internal Server Error",
     });
   }
 };
 
-export const handlePostRequest = async (
+const handlePostRequest = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   const contentType = event.headers["content-type"];
@@ -137,14 +166,14 @@ export const handlePostRequest = async (
     console.debug({ event: "Added environment" });
     return makeApiGwResponse(StatusCodes.OK, parsedEnvironment);
   } catch (err) {
-    console.log("Failed to add environment", err.stack);
+    console.error({ event: "Failed to add environment", data: err.stack });
     return makeApiGwResponse(StatusCodes.INTERNAL_SERVER_ERROR, {
       message: "Internal Server Error",
     });
   }
 };
 
-export const handlePutRequest = async (
+const handlePutRequest = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   const contentType = event.headers["content-type"];
@@ -196,7 +225,7 @@ export const handlePutRequest = async (
         message: "Not Found",
       });
     } else {
-      console.log("Failed to update environment", err.stack);
+      console.error({ event: "Failed to update environment", data: err.stack });
       return makeApiGwResponse(StatusCodes.INTERNAL_SERVER_ERROR, {
         message: "Internal Server Error",
       });
@@ -204,7 +233,7 @@ export const handlePutRequest = async (
   }
 };
 
-export const handleDeleteRequest = async (
+const handleDeleteRequest = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   const orgId: string | undefined = extractOrgId(event);
@@ -239,7 +268,7 @@ export const handleDeleteRequest = async (
         message: "Not Found",
       });
     } else {
-      console.log("Failed to delete environment", err.stack);
+      console.error({ event: "Failed to delete environment", data: err.stack });
       return makeApiGwResponse(StatusCodes.INTERNAL_SERVER_ERROR, {
         message: "Internal Server Error",
       });
