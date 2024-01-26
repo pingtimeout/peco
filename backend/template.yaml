@@ -315,6 +315,13 @@ Resources:
         <<: *esbuild_props
         EntryPoints:
           - src/handlers/use-case-crud.ts
+  CrudUseCasesFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DependsOn: CrudUseCasesFunction
+    Properties:
+      RetentionInDays: 30
+      LogGroupName: !Join ["", ["/aws/lambda/", !Ref CrudUseCasesFunction]]
+
   CrudEnvironmentFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -372,6 +379,13 @@ Resources:
         <<: *esbuild_props
         EntryPoints:
           - src/handlers/environment-crud.ts
+  CrudEnvironmentFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DependsOn: CrudEnvironmentFunction
+    Properties:
+      RetentionInDays: 30
+      LogGroupName: !Join ["", ["/aws/lambda/", !Ref CrudEnvironmentFunction]]
+
   CrudProductsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -429,6 +443,13 @@ Resources:
         <<: *esbuild_props
         EntryPoints:
           - src/handlers/product-crud.ts
+  CrudProductsFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DependsOn: CrudProductsFunction
+    Properties:
+      RetentionInDays: 30
+      LogGroupName: !Join ["", ["/aws/lambda/", !Ref CrudProductsFunction]]
+
   CrudMetricDefinitionsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -486,6 +507,13 @@ Resources:
         <<: *esbuild_props
         EntryPoints:
           - src/handlers/metric-definition-crud.ts
+  CrudMetricDefinitionsFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DependsOn: CrudMetricDefinitionsFunction
+    Properties:
+      RetentionInDays: 30
+      LogGroupName: !Join ["", ["/aws/lambda/", !Ref CrudMetricDefinitionsFunction]]
+
   CrudBenchmarkDefinitionsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -543,6 +571,12 @@ Resources:
         <<: *esbuild_props
         EntryPoints:
           - src/handlers/benchmark-definition-crud.ts
+  CrudBenchmarkDefinitionsFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DependsOn: CrudBenchmarkDefinitionsFunction
+    Properties:
+      RetentionInDays: 30
+      LogGroupName: !Join ["", ["/aws/lambda/", !Ref CrudBenchmarkDefinitionsFunction]]
 
   UseCaseTable:
     Type: AWS::DynamoDB::Table
