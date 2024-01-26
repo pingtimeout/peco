@@ -7,6 +7,9 @@
     "noEmit": true,
     "noEmitHelpers": true,
     "skipLibCheck": true,
+    "sourceMap": true,
+    "inlineSourceMap": true,
+    "inlineSources": true,
     "forceConsistentCasingInFileNames": true
   }
 }
