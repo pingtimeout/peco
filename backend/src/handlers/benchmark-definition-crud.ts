@@ -22,7 +22,36 @@ const ddbDocClient = DynamoDBDocumentClient.from(client);
 const benchmarkDefinitionTableName =
   process.env.BENCHMARK_DEFINITION_TABLE_NAME;
 
-export const handleGetAllRequest = async (
+export const handleAnyRequest = async (
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> => {
+  const productId: string | undefined = event.pathParameters?.id;
+  const method: string = event.httpMethod;
+  console.debug({
+    event: "Dispatching query",
+    data: {
+      httpMethod: method,
+      productId: productId,
+    },
+  });
+  if (productId === undefined && method === "GET") {
+    return await handleGetAllRequest(event);
+  } else if (productId === undefined && method === "POST") {
+    return await handlePostRequest(event);
+  } else if (method === "GET") {
+    return await handleGetRequest(event);
+  } else if (method === "PUT") {
+    return await handlePutRequest(event);
+  } else if (method === "DELETE") {
+    return await handleDeleteRequest(event);
+  } else {
+    return makeApiGwResponse(StatusCodes.BAD_REQUEST, {
+      message: "Unknown path/method combination",
+    });
+  }
+};
+
+const handleGetAllRequest = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   const orgId: string | undefined = extractOrgId(event);
@@ -74,7 +103,7 @@ export const handleGetAllRequest = async (
   }
 };
 
-export const handleGetRequest = async (
+const handleGetRequest = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   const orgId: string | undefined = extractOrgId(event);
@@ -130,7 +159,7 @@ export const handleGetRequest = async (
   }
 };
 
-export const handlePostRequest = async (
+const handlePostRequest = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   const contentType = event.headers["content-type"];
@@ -187,7 +216,7 @@ export const handlePostRequest = async (
   }
 };
 
-export const handlePutRequest = async (
+const handlePutRequest = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   const contentType = event.headers["content-type"];
@@ -266,7 +295,7 @@ export const handlePutRequest = async (
   }
 };
 
-export const handleDeleteRequest = async (
+const handleDeleteRequest = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   const orgId: string | undefined = extractOrgId(event);

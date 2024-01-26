@@ -486,74 +486,24 @@ Resources:
         <<: *esbuild_props
         EntryPoints:
           - src/handlers/metric-definition-crud.ts
-
-  GetAllBenchmarkDefinitionFunction:
+  CrudBenchmarkDefinitionsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: src/handlers/benchmark-definition-crud.handleGetAllRequest
+      Handler: src/handlers/benchmark-definition-crud.handleAnyRequest
       Policies:
-        - DynamoDBReadPolicy:
+        - DynamoDBCrudPolicy:
             TableName: !Ref BenchmarkDefinitionTable
       Environment:
         Variables:
           BENCHMARK_DEFINITION_TABLE_NAME: !Ref BenchmarkDefinitionTable
       Events:
-        Api:
+        ListAll:
           Type: Api
           Properties:
             Path: /benchmark-definitions/
             Method: GET
             RestApiId: !Ref RestApi
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        <<: *esbuild_props
-        EntryPoints:
-          - src/handlers/benchmark-definition-crud.ts
-  GetBenchmarkDefinitionFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/handlers/benchmark-definition-crud.handleGetRequest
-      Policies:
-        - DynamoDBReadPolicy:
-            TableName: !Ref BenchmarkDefinitionTable
-      Environment:
-        Variables:
-          BENCHMARK_DEFINITION_TABLE_NAME: !Ref BenchmarkDefinitionTable
-      Events:
-        Api:
-          Type: Api
-          Properties:
-            Path: /benchmark-definitions/{id}
-            Method: GET
-            RestApiId: !Ref RestApi
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        <<: *esbuild_props
-        EntryPoints:
-          - src/handlers/benchmark-definition-crud.ts
-  PostBenchmarkDefinitionFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/handlers/benchmark-definition-crud.handlePostRequest
-      Policies:
-        - DynamoDBWritePolicy:
-            TableName: !Ref BenchmarkDefinitionTable
-        - DynamoDBReadPolicy:
-            TableName: !Ref UseCaseTable
-        - DynamoDBReadPolicy:
-            TableName: !Ref EnvironmentTable
-        - DynamoDBReadPolicy:
-            TableName: !Ref ProductTable
-      Environment:
-        Variables:
-          USE_CASE_TABLE_NAME: !Ref UseCaseTable
-          ENVIRONMENT_TABLE_NAME: !Ref EnvironmentTable
-          PRODUCT_TABLE_NAME: !Ref ProductTable
-          BENCHMARK_DEFINITION_TABLE_NAME: !Ref BenchmarkDefinitionTable
-      Events:
-        Api:
+        Create:
           Type: Api
           Properties:
             Path: /benchmark-definitions/
@@ -564,24 +514,13 @@ Resources:
               Required: true
               ValidateBody: true
               ValidateParameters: false
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        <<: *esbuild_props
-        EntryPoints:
-          - src/handlers/benchmark-definition-crud.ts
-  PutBenchmarkDefinitionFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/handlers/benchmark-definition-crud.handlePutRequest
-      Policies:
-        - DynamoDBWritePolicy:
-            TableName: !Ref BenchmarkDefinitionTable
-      Environment:
-        Variables:
-          BENCHMARK_DEFINITION_TABLE_NAME: !Ref BenchmarkDefinitionTable
-      Events:
-        Api:
+        Read:
+          Type: Api
+          Properties:
+            Path: /benchmark-definitions/{id}
+            Method: GET
+            RestApiId: !Ref RestApi
+        Update:
           Type: Api
           Properties:
             Path: /benchmark-definitions/{id}
@@ -592,24 +531,7 @@ Resources:
               Required: true
               ValidateBody: true
               ValidateParameters: false
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        <<: *esbuild_props
-        EntryPoints:
-          - src/handlers/benchmark-definition-crud.ts
-  DeleteBenchmarkDefinitionFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/handlers/benchmark-definition-crud.handleDeleteRequest
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref BenchmarkDefinitionTable
-      Environment:
-        Variables:
-          BENCHMARK_DEFINITION_TABLE_NAME: !Ref BenchmarkDefinitionTable
-      Events:
-        Api:
+        Delete:
           Type: Api
           Properties:
             Path: /benchmark-definitions/{id}
