@@ -125,7 +125,7 @@ export const handlePostRequest = async (
       benchmarkId: { S: benchmarkId },
     },
     UpdateExpression: "SET #L = :l",
-    ExpressionAttributeNames: { "#L": "lastUpdatedOn" },
+    ExpressionAttributeNames: { "#L": "lastUploadedTimestamp" },
     ExpressionAttributeValues: {
       ":l": { N: "" + currentTimestamp() },
     },

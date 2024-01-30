@@ -103,11 +103,11 @@ describe("Test handlePostRequest", () => {
       TableName: "MockBenchmarkDefinitionsTable",
       Key: {
         orgId: { S: "the-org-id" },
-        benchmarkId: { S: "the-benchmark-id" },
+        id: { S: "the-benchmark-id" },
       },
       UpdateExpression: "SET #L = :l",
       ExpressionAttributeNames: {
-        "#L": "lastUpdatedOn",
+        "#L": "lastUploadedTimestamp",
       },
       ExpressionAttributeValues: {
         ":l": { N: "1706201101677" },

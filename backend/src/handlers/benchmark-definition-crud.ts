@@ -79,7 +79,7 @@ const handleGetAllRequest = async (
           "#PI": "productId",
           "#J": "jenkinsJobUrl",
           "#T": "tags",
-          "#L": "lastUpdatedOn",
+          "#L": "lastUploadedTimestamp",
         },
       })
     );
@@ -185,16 +185,16 @@ const handlePostRequest = async (
   parsedBenchmarkDefinition["id"] = generateUuid();
 
   try {
-    const lastUpdatedOn: number = currentTimestamp();
+    const lastUploadedTimestamp: number = currentTimestamp();
     console.debug({
       event: "Marking benchmark as last updated on",
-      data: lastUpdatedOn,
+      data: lastUploadedTimestamp,
     });
 
     const benchmarkDefinition = BenchmarkDefinition.fromApiModel(
       orgId,
       parsedBenchmarkDefinition,
-      lastUpdatedOn
+      lastUploadedTimestamp
     );
     console.debug({
       event: "Created benchmark definition",
@@ -257,16 +257,16 @@ const handlePutRequest = async (
   }
 
   try {
-    const lastUpdatedOn: number = currentTimestamp();
+    const lastUploadedTimestamp: number = currentTimestamp();
     console.debug({
       event: "Marking benchmark as last updated on",
-      data: lastUpdatedOn,
+      data: lastUploadedTimestamp,
     });
 
     const benchmarkDefinition = BenchmarkDefinition.fromApiModel(
       orgId,
       parsedBenchmarkDefinition,
-      lastUpdatedOn
+      lastUploadedTimestamp
     );
     console.debug({
       event: "Created benchmark definition",

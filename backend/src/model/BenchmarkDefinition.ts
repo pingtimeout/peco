@@ -8,7 +8,7 @@ export class BenchmarkDefinition {
   productId: string;
   jenkinsJobUrl: string | undefined;
   tags: Tag[] | undefined;
-  lastUpdatedOn: number;
+  lastUploadedTimestamp: number;
 
   constructor(
     orgId: string,
@@ -18,7 +18,7 @@ export class BenchmarkDefinition {
     productId: string,
     jenkinsJobUrl: string | undefined,
     tags: Tag[] | undefined,
-    lastUpdatedOn: number,
+    lastUploadedTimestamp: number,
   ) {
     this.key = new BenchmarkDefinitionKey(orgId, id);
     this.useCaseId = useCaseId;
@@ -26,7 +26,7 @@ export class BenchmarkDefinition {
     this.productId = productId;
     this.jenkinsJobUrl = jenkinsJobUrl;
     this.tags = tags;
-    this.lastUpdatedOn = lastUpdatedOn;
+    this.lastUploadedTimestamp = lastUploadedTimestamp;
   }
 
   toAttributeValues(): Record<string, AttributeValue> {
@@ -39,7 +39,7 @@ export class BenchmarkDefinition {
       ...(this.tags && {
         tags: { L: this.tags.map((tag) => tag.toMapAttributeValue()) },
       }),
-      ...{ lastUpdatedOn: { N: "" + this.lastUpdatedOn } },
+      ...{ lastUploadedTimestamp: { N: "" + this.lastUploadedTimestamp } },
     };
   }
 
@@ -51,14 +51,14 @@ export class BenchmarkDefinition {
       ...{ productId: this.productId },
       ...(this.jenkinsJobUrl && { jenkinsJobUrl: this.jenkinsJobUrl }),
       ...(this.tags && { tags: this.tags.map((tag) => tag.toApiModel()) }),
-      ...{ lastUpdatedOn: this.lastUpdatedOn },
+      ...{ lastUploadedTimestamp: this.lastUploadedTimestamp },
     };
   }
 
   static fromApiModel(
     orgId: string,
     parsedBenchmarkDefinition: any,
-    lastUpdatedOn: number,
+    lastUploadedTimestamp: number,
   ): BenchmarkDefinition {
     return new BenchmarkDefinition(
       orgId,
@@ -70,7 +70,7 @@ export class BenchmarkDefinition {
       parsedBenchmarkDefinition["tags"]?.map(
         (tag) => new Tag(tag["name"], tag["value"])
       ),
-      lastUpdatedOn,
+      lastUploadedTimestamp,
     );
   }
 
@@ -88,7 +88,7 @@ export class BenchmarkDefinition {
         attrs["productId"].S!,
         attrs["jenkinsJobUrl"]?.S,
         attrs["tags"].L?.map((tag) => new Tag(tag.M!.name.S!, tag.M!.value.S!)),
-        parseInt(attrs["lastUpdatedOn"].N!),
+        parseInt(attrs["lastUploadedTimestamp"].N!),
       );
     }
   }

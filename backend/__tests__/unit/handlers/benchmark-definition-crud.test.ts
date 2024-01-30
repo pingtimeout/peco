@@ -88,7 +88,7 @@ describe("Test handlePostRequest", () => {
         environmentId: "the-environment-id",
         productId: "the-product-id",
         jenkinsJobUrl: "the-jenkins-job-url",
-        lastUpdatedOn: 123456,
+        lastUploadedTimestamp: 123456,
         tags: [{ name: "the-tag-name", value: "the-tag-value" }],
       }),
     };
@@ -115,7 +115,7 @@ describe("Test handlePostRequest", () => {
             },
           ],
         },
-        lastUpdatedOn: { N: "1706201101633" },
+        lastUploadedTimestamp: { N: "1706201101633" },
       },
     });
     expect(result).toEqual({
@@ -130,7 +130,7 @@ describe("Test handlePostRequest", () => {
         productId: "the-product-id",
         jenkinsJobUrl: "the-jenkins-job-url",
         tags: [{ name: "the-tag-name", value: "the-tag-value" }],
-        lastUpdatedOn: 1706201101633,
+        lastUploadedTimestamp: 1706201101633,
       }),
     });
   });
@@ -241,7 +241,7 @@ describe("Test handleGetRequest", () => {
               },
             ],
           },
-          lastUpdatedOn: { N: "1706201101633" },
+          lastUploadedTimestamp: { N: "1706201101633" },
         },
       });
     const result = await handleAnyRequest(eventWithId as APIGatewayProxyEvent);
@@ -266,7 +266,7 @@ describe("Test handleGetRequest", () => {
         productId: "the-product-id",
         jenkinsJobUrl: "the-jenkins-job-url",
         tags: [{ name: "the-tag-name", value: "the-tag-value" }],
-        lastUpdatedOn: 1706201101633,
+        lastUploadedTimestamp: 1706201101633,
       }),
     });
   });
@@ -366,7 +366,7 @@ describe("Test handlePutRequest", () => {
         environmentId: "the-updated-environment-id",
         productId: "the-updated-product-id",
         jenkinsJobUrl: "the-jenkins-job-url",
-        lastUpdatedOn: 123456,
+        lastUploadedTimestamp: 123456,
         tags: [{ name: "the-tag-name", value: "the-tag-value" }],
       }),
     };
@@ -394,7 +394,7 @@ describe("Test handlePutRequest", () => {
             },
           ],
         },
-        lastUpdatedOn: { N: "1706201101633" },
+        lastUploadedTimestamp: { N: "1706201101633" },
       },
     });
     expect(result).toEqual({
@@ -409,7 +409,7 @@ describe("Test handlePutRequest", () => {
         productId: "the-updated-product-id",
         jenkinsJobUrl: "the-jenkins-job-url",
         tags: [{ name: "the-tag-name", value: "the-tag-value" }],
-        lastUpdatedOn: 1706201101633,
+        lastUploadedTimestamp: 1706201101633,
       }),
     });
   });
@@ -471,7 +471,7 @@ describe("Test handlePutRequest", () => {
             },
           ],
         },
-        lastUpdatedOn: { N: "1706201101633" },
+        lastUploadedTimestamp: { N: "1706201101633" },
       },
     });
     expect(result).toEqual({
@@ -650,7 +650,7 @@ describe("Test handleGetAllRequest", () => {
           "#PI": "productId",
           "#J": "jenkinsJobUrl",
           "#T": "tags",
-          "#L": "lastUpdatedOn",
+          "#L": "lastUploadedTimestamp",
         },
         ExpressionAttributeValues: {
           ":O": {
@@ -680,7 +680,7 @@ describe("Test handleGetAllRequest", () => {
                 },
               ],
             },
-            lastUpdatedOn: { N: "1706201101633" },
+            lastUploadedTimestamp: { N: "1706201101633" },
           },
           {
             orgId: { S: "the-org-id" },
@@ -699,7 +699,7 @@ describe("Test handleGetAllRequest", () => {
                 },
               ],
             },
-            lastUpdatedOn: { N: "1706201101632" },
+            lastUploadedTimestamp: { N: "1706201101632" },
           },
           {
             orgId: { S: "the-org-id" },
@@ -718,7 +718,7 @@ describe("Test handleGetAllRequest", () => {
                 },
               ],
             },
-            lastUpdatedOn: { N: "1706201101631" },
+            lastUploadedTimestamp: { N: "1706201101631" },
           },
         ],
       });
@@ -735,7 +735,7 @@ describe("Test handleGetAllRequest", () => {
         "#PI": "productId",
         "#J": "jenkinsJobUrl",
         "#T": "tags",
-        "#L": "lastUpdatedOn",
+        "#L": "lastUploadedTimestamp",
       },
       ExpressionAttributeValues: {
         ":O": {
@@ -758,7 +758,7 @@ describe("Test handleGetAllRequest", () => {
           productId: "the-product-id-1",
           jenkinsJobUrl: "the-jenkins-job-url-1",
           tags: [{ name: "the-tag-name", value: "the-tag-value" }],
-          lastUpdatedOn: 1706201101633,
+          lastUploadedTimestamp: 1706201101633,
         },
         {
           id: "benchmark-definition-id-2",
@@ -767,7 +767,7 @@ describe("Test handleGetAllRequest", () => {
           productId: "the-product-id-2",
           jenkinsJobUrl: "the-jenkins-job-url-2",
           tags: [{ name: "the-tag-name", value: "the-tag-value" }],
-          lastUpdatedOn: 1706201101632,
+          lastUploadedTimestamp: 1706201101632,
         },
         {
           id: "benchmark-definition-id-3",
@@ -776,7 +776,7 @@ describe("Test handleGetAllRequest", () => {
           productId: "the-product-id-3",
           jenkinsJobUrl: "the-jenkins-job-url-3",
           tags: [{ name: "the-tag-name", value: "the-tag-value" }],
-          lastUpdatedOn: 1706201101631,
+          lastUploadedTimestamp: 1706201101631,
         },
       ]),
     });
