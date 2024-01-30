@@ -6,6 +6,9 @@ function getEnv(name: string): string {
   return val;
 }
 
+export const benchmarkDefinitionsTableName: string =
+  getEnv("BENCHMARK_DEFINITIONS_TABLE_NAME");
+
 export const benchmarkRunsTableName: string =
   getEnv("BENCHMARK_RUNS_TABLE_NAME");
 

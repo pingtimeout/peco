@@ -14,6 +14,7 @@ import {
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { StatusCodes } from "http-status-codes";
 import {
+  benchmarkDefinitionsTableName,
   benchmarkRunsTableName,
   benchmarkValuesTableName,
   monitoredMetricsTableName,
@@ -117,6 +118,23 @@ export const handlePostRequest = async (
     data: JSON.stringify(metricsUpdateRequest),
   });
 
+  const benchmarkDefinitionUpdateRequest: UpdateItemInput = {
+    TableName: benchmarkDefinitionsTableName,
+    Key: {
+      orgId: { S: orgId },
+      benchmarkId: { S: benchmarkId },
+    },
+    UpdateExpression: "SET #L = :l",
+    ExpressionAttributeNames: { "#L": "lastUpdatedOn" },
+    ExpressionAttributeValues: {
+      ":l": { N: "" + currentTimestamp() },
+    },
+  };
+  console.debug({
+    event: "Benchmark definitions update request",
+    data: JSON.stringify(benchmarkDefinitionUpdateRequest),
+  });
+
   try {
     const runPutPromise = ddbDocClient.send(new PutItemCommand(runPutRequest));
     const valuesPutPromise = ddbDocClient.send(
@@ -129,10 +147,14 @@ export const handlePostRequest = async (
     const metricsUpdatePromise = ddbDocClient.send(
       new UpdateItemCommand(metricsUpdateRequest)
     );
+    const benchmarkDefinitionsUpdatePromise = ddbDocClient.send(
+      new UpdateItemCommand(benchmarkDefinitionUpdateRequest)
+    );
 
     await runPutPromise;
     await valuesPutPromise;
     await metricsUpdatePromise;
+    await benchmarkDefinitionsUpdatePromise;
 
     return makeApiGwResponse(StatusCodes.OK, {});
   } catch (err) {

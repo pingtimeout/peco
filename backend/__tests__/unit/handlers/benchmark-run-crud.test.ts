@@ -16,9 +16,19 @@ import { mockClient } from "aws-sdk-client-mock";
 import "aws-sdk-client-mock-jest";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 
+jest.mock("../../../src/time-source", () => {
+  const originalModule = jest.requireActual("../../../src/time-source");
+  return {
+    __esModule: true,
+    ...originalModule,
+    currentTimestamp: jest.fn(() => 1706201101677), // 2024-01-25T16:45:01.677Z
+  };
+});
+
 jest.mock("../../../src/environment-variables", () => {
   return {
     __esModule: true,
+    benchmarkDefinitionsTableName: "MockBenchmarkDefinitionsTable",
     benchmarkRunsTableName: "MockBenchmarkRunsTable",
     benchmarkValuesTableName: "MockBenchmarkValuesTable",
     monitoredMetricsTableName: "MockMonitoredMetricsTable",
@@ -88,7 +98,60 @@ describe("Test handlePostRequest", () => {
 
     const result = await handleAnyRequest(event as APIGatewayProxyEvent);
 
-    expect(ddbMock.calls().length).toEqual(3);
+    expect(ddbMock.calls().length).toEqual(4);
+    expect(ddbMock).toHaveReceivedCommandWith(UpdateItemCommand, {
+      TableName: "MockBenchmarkDefinitionsTable",
+      Key: {
+        orgId: { S: "the-org-id" },
+        benchmarkId: { S: "the-benchmark-id" },
+      },
+      UpdateExpression: "SET #L = :l",
+      ExpressionAttributeNames: {
+        "#L": "lastUpdatedOn",
+      },
+      ExpressionAttributeValues: {
+        ":l": { N: "1706201101677" },
+      },
+    });
+    expect(result).toEqual({
+      statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: "{}",
+    });
+  });
+
+  it("should store benchmark run metadata", async () => {
+    const event: Partial<APIGatewayProxyEvent> = {
+      headers: {
+        "content-type": "application/json",
+      },
+      httpMethod: "POST",
+      // @ts-ignore
+      requestContext: {
+        authorizer: {
+          claims: {
+            "custom:orgId": "the-org-id",
+          },
+        },
+      },
+      body: JSON.stringify({
+        benchmarkId: "the-benchmark-id",
+        executedOn: 123456789,
+        metrics: [
+          { metricDefinitionId: "mid-1", value: 111 },
+          { metricDefinitionId: "mid-2", value: 222 },
+          { metricDefinitionId: "mid-3", value: 333 },
+          { metricDefinitionId: "mid-4", value: 444 },
+          { metricDefinitionId: "mid-5", value: 555 },
+        ],
+      }),
+    };
+
+    const result = await handleAnyRequest(event as APIGatewayProxyEvent);
+
+    expect(ddbMock.calls().length).toEqual(4);
     expect(ddbMock).toHaveReceivedCommandWith(PutItemCommand, {
       TableName: "MockBenchmarkRunsTable",
       Item: {
@@ -135,7 +198,7 @@ describe("Test handlePostRequest", () => {
 
     const result = await handleAnyRequest(event as APIGatewayProxyEvent);
 
-    expect(ddbMock.calls().length).toEqual(3);
+    expect(ddbMock.calls().length).toEqual(4);
     expect(ddbMock).toHaveReceivedCommandWith(BatchWriteItemCommand, {
       RequestItems: {
         MockBenchmarkValuesTable: [
@@ -225,7 +288,7 @@ describe("Test handlePostRequest", () => {
 
     const result = await handleAnyRequest(event as APIGatewayProxyEvent);
 
-    expect(ddbMock.calls().length).toEqual(3);
+    expect(ddbMock.calls().length).toEqual(4);
     expect(ddbMock).toHaveReceivedCommandWith(UpdateItemCommand, {
       TableName: "MockMonitoredMetricsTable",
       Key: {
