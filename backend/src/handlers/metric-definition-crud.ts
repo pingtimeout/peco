@@ -1,21 +1,22 @@
-import { extractOrgId, makeApiGwResponse } from "../api-gateway-util";
-import { generateUuid } from "../uuid-generator";
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import {
+  ConditionalCheckFailedException,
+  DeleteItemCommand,
   DynamoDBClient,
-  ScanCommand,
   GetItemCommand,
   PutItemCommand,
-  DeleteItemCommand,
-  ConditionalCheckFailedException,
+  ScanCommand,
 } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+import { type APIGatewayProxyEvent, type APIGatewayProxyResult } from "aws-lambda";
+import { StatusCodes } from "http-status-codes";
+
+import { extractOrgId, makeApiGwResponse } from "../api-gateway-util";
+import { metricDefinitionsTableName } from "../environment-variables";
 import {
   MetricDefinition,
   MetricDefinitionKey,
 } from "../model/MetricDefinition";
-import { StatusCodes } from "http-status-codes";
-import { metricDefinitionsTableName } from "../environment-variables";
+import { generateUuid } from "../uuid-generator";
 
 const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
@@ -29,7 +30,7 @@ export const handleAnyRequest = async (
     event: "Dispatching query",
     data: {
       httpMethod: method,
-      productId: productId,
+      productId,
     },
   });
   if (productId === undefined && method === "GET") {
@@ -181,7 +182,7 @@ const handlePostRequest = async (
     event: "Parsed metricDefinition",
     data: parsedMetricDefinition,
   });
-  parsedMetricDefinition["id"] = generateUuid();
+  parsedMetricDefinition.id = generateUuid();
   const metricDefinition = MetricDefinition.fromApiModel(
     orgId,
     parsedMetricDefinition,
@@ -246,7 +247,7 @@ const handlePutRequest = async (
     parsedMetricDefinition,
   );
 
-  if (parsedMetricDefinition["id"] !== metricDefinitionId) {
+  if (parsedMetricDefinition.id !== metricDefinitionId) {
     return makeApiGwResponse(StatusCodes.BAD_REQUEST, {
       message: "Id mismatch",
     });

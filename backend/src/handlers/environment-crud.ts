@@ -1,18 +1,19 @@
-import { extractOrgId, makeApiGwResponse } from "../api-gateway-util";
-import { generateUuid } from "../uuid-generator";
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import {
+  ConditionalCheckFailedException,
+  DeleteItemCommand,
   DynamoDBClient,
-  ScanCommand,
   GetItemCommand,
   PutItemCommand,
-  DeleteItemCommand,
-  ConditionalCheckFailedException,
+  ScanCommand,
 } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
-import { Environment, EnvironmentKey } from "../model/Environment";
+import { type APIGatewayProxyEvent, type APIGatewayProxyResult } from "aws-lambda";
 import { StatusCodes } from "http-status-codes";
+
+import { extractOrgId, makeApiGwResponse } from "../api-gateway-util";
 import { environmentsTableName } from "../environment-variables";
+import { Environment, EnvironmentKey } from "../model/Environment";
+import { generateUuid } from "../uuid-generator";
 
 const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
@@ -26,7 +27,7 @@ export const handleAnyRequest = async (
     event: "Dispatching query",
     data: {
       httpMethod: method,
-      productId: productId,
+      productId,
     },
   });
   if (productId === undefined && method === "GET") {
@@ -153,7 +154,7 @@ const handlePostRequest = async (
 
   const parsedEnvironment = JSON.parse(event.body || "{}");
   console.debug({ event: "Parsed environment", data: parsedEnvironment });
-  parsedEnvironment["id"] = generateUuid();
+  parsedEnvironment.id = generateUuid();
   const environment = Environment.fromApiModel(orgId, parsedEnvironment);
 
   try {
@@ -203,7 +204,7 @@ const handlePutRequest = async (
   console.debug({ event: "Parsed environment", data: parsedEnvironment });
   const environment = Environment.fromApiModel(orgId, parsedEnvironment);
 
-  if (parsedEnvironment["id"] !== environmentId) {
+  if (parsedEnvironment.id !== environmentId) {
     return makeApiGwResponse(StatusCodes.BAD_REQUEST, {
       message: "Id mismatch",
     });

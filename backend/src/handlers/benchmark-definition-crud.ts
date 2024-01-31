@@ -1,22 +1,23 @@
-import { extractOrgId, makeApiGwResponse } from "../api-gateway-util";
-import { generateUuid } from "../uuid-generator";
-import { currentTimestamp } from "../time-source";
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import {
+  ConditionalCheckFailedException,
+  DeleteItemCommand,
   DynamoDBClient,
-  ScanCommand,
   GetItemCommand,
   PutItemCommand,
-  DeleteItemCommand,
-  ConditionalCheckFailedException,
+  ScanCommand,
 } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+import { type APIGatewayProxyEvent, type APIGatewayProxyResult } from "aws-lambda";
+import { StatusCodes } from "http-status-codes";
+
+import { extractOrgId, makeApiGwResponse } from "../api-gateway-util";
+import { benchmarkDefinitionsTableName } from "../environment-variables";
 import {
   BenchmarkDefinition,
   BenchmarkDefinitionKey,
 } from "../model/BenchmarkDefinition";
-import { benchmarkDefinitionsTableName } from "../environment-variables";
-import { StatusCodes } from "http-status-codes";
+import { currentTimestamp } from "../time-source";
+import { generateUuid } from "../uuid-generator";
 
 const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
@@ -30,7 +31,7 @@ export const handleAnyRequest = async (
     event: "Dispatching query",
     data: {
       httpMethod: method,
-      productId: productId,
+      productId,
     },
   });
   if (productId === undefined && method === "GET") {
@@ -181,7 +182,7 @@ const handlePostRequest = async (
     event: "Parsed benchmarkDefinition",
     data: parsedBenchmarkDefinition,
   });
-  parsedBenchmarkDefinition["id"] = generateUuid();
+  parsedBenchmarkDefinition.id = generateUuid();
 
   try {
     const lastUploadedTimestamp: number = currentTimestamp();
@@ -249,7 +250,7 @@ const handlePutRequest = async (
     event: "Parsed benchmarkDefinition",
     data: parsedBenchmarkDefinition,
   });
-  if (parsedBenchmarkDefinition["id"] !== benchmarkDefinitionId) {
+  if (parsedBenchmarkDefinition.id !== benchmarkDefinitionId) {
     return makeApiGwResponse(StatusCodes.BAD_REQUEST, {
       message: "Id mismatch",
     });

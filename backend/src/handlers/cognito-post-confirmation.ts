@@ -1,16 +1,16 @@
-import { v4 as uuidv4 } from "uuid";
-import {
-  CognitoIdentityProviderClient,
-  AdminUpdateUserAttributesCommand,
-} from "@aws-sdk/client-cognito-identity-provider";
-import { PostConfirmationTriggerHandler } from "@types/aws-lambda";
 import {
   APIGatewayClient,
-  CreateUsagePlanKeyCommand,
   CreateApiKeyCommand,
-  GetUsagePlansCommand,
+  CreateUsagePlanKeyCommand,
   GetUsagePlanCommandOutput,
+  GetUsagePlansCommand,
 } from "@aws-sdk/client-api-gateway";
+import {
+  AdminUpdateUserAttributesCommand,
+  CognitoIdentityProviderClient,
+} from "@aws-sdk/client-cognito-identity-provider";
+import { PostConfirmationTriggerHandler } from "@types/aws-lambda";
+import { v4 as uuidv4 } from "uuid";
 import UUIDAPIKey from "uuid-apikey";
 
 const cognitoIdentityServiceProvider = new CognitoIdentityProviderClient({});

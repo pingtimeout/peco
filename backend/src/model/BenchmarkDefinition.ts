@@ -1,4 +1,5 @@
-import { AttributeValue } from "@aws-sdk/client-dynamodb";
+import { type AttributeValue } from "@aws-sdk/client-dynamodb";
+
 import { Tag } from "./Tag";
 
 export class BenchmarkDefinition {
@@ -62,13 +63,13 @@ export class BenchmarkDefinition {
   ): BenchmarkDefinition {
     return new BenchmarkDefinition(
       orgId,
-      parsedBenchmarkDefinition["id"],
-      parsedBenchmarkDefinition["useCaseId"],
-      parsedBenchmarkDefinition["environmentId"],
-      parsedBenchmarkDefinition["productId"],
-      parsedBenchmarkDefinition["jenkinsJobUrl"],
-      parsedBenchmarkDefinition["tags"]?.map(
-        (tag) => new Tag(tag["name"], tag["value"]),
+      parsedBenchmarkDefinition.id,
+      parsedBenchmarkDefinition.useCaseId,
+      parsedBenchmarkDefinition.environmentId,
+      parsedBenchmarkDefinition.productId,
+      parsedBenchmarkDefinition.jenkinsJobUrl,
+      parsedBenchmarkDefinition.tags?.map(
+        (tag) => new Tag(tag.name, tag.value),
       ),
       lastUploadedTimestamp,
     );
@@ -81,14 +82,14 @@ export class BenchmarkDefinition {
       return undefined;
     } else {
       return new BenchmarkDefinition(
-        attrs["orgId"].S!,
-        attrs["id"].S!,
-        attrs["useCaseId"].S!,
-        attrs["environmentId"].S!,
-        attrs["productId"].S!,
-        attrs["jenkinsJobUrl"]?.S,
-        attrs["tags"].L?.map((tag) => new Tag(tag.M!.name.S!, tag.M!.value.S!)),
-        parseInt(attrs["lastUploadedTimestamp"].N!),
+        attrs.orgId.S!,
+        attrs.id.S!,
+        attrs.useCaseId.S!,
+        attrs.environmentId.S!,
+        attrs.productId.S!,
+        attrs.jenkinsJobUrl?.S,
+        attrs.tags.L?.map((tag) => new Tag(tag.M!.name.S!, tag.M!.value.S!)),
+        parseInt(attrs.lastUploadedTimestamp.N!),
       );
     }
   }

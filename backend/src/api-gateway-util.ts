@@ -1,4 +1,4 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { type APIGatewayProxyEvent, type APIGatewayProxyResult } from "aws-lambda";
 
 export function extractOrgId(event: APIGatewayProxyEvent): string | undefined {
   const claims = event.requestContext?.authorizer?.claims || {};
@@ -10,7 +10,7 @@ export function makeApiGwResponse(
   body: any,
 ): APIGatewayProxyResult {
   return {
-    statusCode: statusCode,
+    statusCode,
     body: JSON.stringify(body),
     headers: {
       "Access-Control-Allow-Origin": "*",

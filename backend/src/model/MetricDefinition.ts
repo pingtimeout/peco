@@ -1,4 +1,5 @@
-import { AttributeValue } from "@aws-sdk/client-dynamodb";
+import { type AttributeValue } from "@aws-sdk/client-dynamodb";
+
 import { Tag } from "./Tag";
 
 export class MetricDefinition {
@@ -56,13 +57,13 @@ export class MetricDefinition {
   ): MetricDefinition {
     return new MetricDefinition(
       orgId,
-      parsedMetricDefinition["id"],
-      parsedMetricDefinition["name"],
-      parsedMetricDefinition["description"],
-      parsedMetricDefinition["unit"],
-      parsedMetricDefinition["regressionDirection"],
-      parsedMetricDefinition["tags"]?.map(
-        (tag) => new Tag(tag["name"], tag["value"]),
+      parsedMetricDefinition.id,
+      parsedMetricDefinition.name,
+      parsedMetricDefinition.description,
+      parsedMetricDefinition.unit,
+      parsedMetricDefinition.regressionDirection,
+      parsedMetricDefinition.tags?.map(
+        (tag) => new Tag(tag.name, tag.value),
       ),
     );
   }
@@ -74,13 +75,13 @@ export class MetricDefinition {
       return undefined;
     } else {
       return new MetricDefinition(
-        attrs["orgId"].S!,
-        attrs["id"].S!,
-        attrs["name"].S,
-        attrs["description"]?.S,
-        attrs["unit"].S!,
-        attrs["regressionDirection"].S!,
-        attrs["tags"].L?.map((tag) => new Tag(tag.M!.name.S!, tag.M!.value.S!)),
+        attrs.orgId.S!,
+        attrs.id.S!,
+        attrs.name.S,
+        attrs.description?.S,
+        attrs.unit.S!,
+        attrs.regressionDirection.S!,
+        attrs.tags.L?.map((tag) => new Tag(tag.M!.name.S!, tag.M!.value.S!)),
       );
     }
   }

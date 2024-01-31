@@ -1,4 +1,5 @@
-import { AttributeValue } from "@aws-sdk/client-dynamodb";
+import { type AttributeValue } from "@aws-sdk/client-dynamodb";
+
 import { Tag } from "./Tag";
 
 export class Product {
@@ -43,10 +44,10 @@ export class Product {
   static fromApiModel(orgId: string, parsedProduct: any): Product {
     return new Product(
       orgId,
-      parsedProduct["id"],
-      parsedProduct["name"],
-      parsedProduct["description"],
-      parsedProduct["tags"]?.map((tag) => new Tag(tag["name"], tag["value"])),
+      parsedProduct.id,
+      parsedProduct.name,
+      parsedProduct.description,
+      parsedProduct.tags?.map((tag) => new Tag(tag.name, tag.value)),
     );
   }
 
@@ -57,11 +58,11 @@ export class Product {
       return undefined;
     } else {
       return new Product(
-        attrs["orgId"].S!,
-        attrs["id"].S!,
-        attrs["name"].S,
-        attrs["description"]?.S,
-        attrs["tags"].L?.map((tag) => new Tag(tag.M!.name.S!, tag.M!.value.S!)),
+        attrs.orgId.S!,
+        attrs.id.S!,
+        attrs.name.S,
+        attrs.description?.S,
+        attrs.tags.L?.map((tag) => new Tag(tag.M!.name.S!, tag.M!.value.S!)),
       );
     }
   }

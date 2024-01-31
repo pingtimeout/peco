@@ -1,18 +1,19 @@
-import { extractOrgId, makeApiGwResponse } from "../api-gateway-util";
-import { generateUuid } from "../uuid-generator";
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import {
+  ConditionalCheckFailedException,
+  DeleteItemCommand,
   DynamoDBClient,
-  ScanCommand,
   GetItemCommand,
   PutItemCommand,
-  DeleteItemCommand,
-  ConditionalCheckFailedException,
+  ScanCommand,
 } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
-import { UseCase, UseCaseKey } from "../model/UseCase";
+import { type APIGatewayProxyEvent, type APIGatewayProxyResult } from "aws-lambda";
 import { StatusCodes } from "http-status-codes";
+
+import { extractOrgId, makeApiGwResponse } from "../api-gateway-util";
 import { useCasesTableName } from "../environment-variables";
+import { UseCase, UseCaseKey } from "../model/UseCase";
+import { generateUuid } from "../uuid-generator";
 
 const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
@@ -26,7 +27,7 @@ export const handleAnyRequest = async (
     event: "Dispatching query",
     data: {
       httpMethod: method,
-      useCaseId: useCaseId,
+      useCaseId,
     },
   });
   if (useCaseId === undefined && method === "GET") {
@@ -153,7 +154,7 @@ const handlePostRequest = async (
 
   const parsedUseCase = JSON.parse(event.body || "{}");
   console.debug({ event: "Parsed use-case", data: parsedUseCase });
-  parsedUseCase["id"] = generateUuid();
+  parsedUseCase.id = generateUuid();
   const useCase = UseCase.fromApiModel(orgId, parsedUseCase);
 
   try {
@@ -203,7 +204,7 @@ const handlePutRequest = async (
   console.debug({ event: "Parsed use-case", data: parsedUseCase });
   const useCase = UseCase.fromApiModel(orgId, parsedUseCase);
 
-  if (parsedUseCase["id"] !== useCaseId) {
+  if (parsedUseCase.id !== useCaseId) {
     return makeApiGwResponse(StatusCodes.BAD_REQUEST, {
       message: "Id mismatch",
     });

@@ -1,4 +1,4 @@
-import { AttributeValue } from "@aws-sdk/client-dynamodb";
+import { type AttributeValue } from "@aws-sdk/client-dynamodb";
 
 export class Tag {
   name: string;

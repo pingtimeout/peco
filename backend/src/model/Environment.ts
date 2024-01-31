@@ -1,4 +1,5 @@
-import { AttributeValue } from "@aws-sdk/client-dynamodb";
+import { type AttributeValue } from "@aws-sdk/client-dynamodb";
+
 import { Tag } from "./Tag";
 
 export class Environment {
@@ -43,11 +44,11 @@ export class Environment {
   static fromApiModel(orgId: string, parsedEnvironment: any): Environment {
     return new Environment(
       orgId,
-      parsedEnvironment["id"],
-      parsedEnvironment["name"],
-      parsedEnvironment["description"],
-      parsedEnvironment["tags"]?.map(
-        (tag) => new Tag(tag["name"], tag["value"]),
+      parsedEnvironment.id,
+      parsedEnvironment.name,
+      parsedEnvironment.description,
+      parsedEnvironment.tags?.map(
+        (tag) => new Tag(tag.name, tag.value),
       ),
     );
   }
@@ -59,11 +60,11 @@ export class Environment {
       return undefined;
     } else {
       return new Environment(
-        attrs["orgId"].S!,
-        attrs["id"].S!,
-        attrs["name"].S,
-        attrs["description"]?.S,
-        attrs["tags"].L?.map((tag) => new Tag(tag.M!.name.S!, tag.M!.value.S!)),
+        attrs.orgId.S!,
+        attrs.id.S!,
+        attrs.name.S,
+        attrs.description?.S,
+        attrs.tags.L?.map((tag) => new Tag(tag.M!.name.S!, tag.M!.value.S!)),
       );
     }
   }

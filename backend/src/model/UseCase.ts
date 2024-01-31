@@ -1,4 +1,5 @@
-import { AttributeValue } from "@aws-sdk/client-dynamodb";
+import { type AttributeValue } from "@aws-sdk/client-dynamodb";
+
 import { Tag } from "./Tag";
 
 export class UseCase {
@@ -43,10 +44,10 @@ export class UseCase {
   static fromApiModel(orgId: string, parsedUseCase: any): UseCase {
     return new UseCase(
       orgId,
-      parsedUseCase["id"],
-      parsedUseCase["name"],
-      parsedUseCase["description"],
-      parsedUseCase["tags"]?.map((tag) => new Tag(tag["name"], tag["value"])),
+      parsedUseCase.id,
+      parsedUseCase.name,
+      parsedUseCase.description,
+      parsedUseCase.tags?.map((tag) => new Tag(tag.name, tag.value)),
     );
   }
 
@@ -57,11 +58,11 @@ export class UseCase {
       return undefined;
     } else {
       return new UseCase(
-        attrs["orgId"].S!,
-        attrs["id"].S!,
-        attrs["name"].S,
-        attrs["description"]?.S,
-        attrs["tags"].L?.map((tag) => new Tag(tag.M!.name.S!, tag.M!.value.S!)),
+        attrs.orgId.S!,
+        attrs.id.S!,
+        attrs.name.S,
+        attrs.description?.S,
+        attrs.tags.L?.map((tag) => new Tag(tag.M!.name.S!, tag.M!.value.S!)),
       );
     }
   }

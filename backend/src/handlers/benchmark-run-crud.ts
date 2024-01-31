@@ -1,24 +1,25 @@
-import { extractOrgId, makeApiGwResponse } from "../api-gateway-util";
-import { generateUuid } from "../uuid-generator";
-import { currentTimestamp } from "../time-source";
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import {
-  DynamoDBClient,
-  UpdateItemCommand,
-  UpdateItemInput,
-  PutItemInput,
-  PutItemCommand,
-  WriteRequest,
   BatchWriteItemCommand,
+  DynamoDBClient,
+  PutItemCommand,
+  type PutItemInput,
+  UpdateItemCommand,
+  type UpdateItemInput,
+  type WriteRequest,
 } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+import { type APIGatewayProxyEvent, type APIGatewayProxyResult } from "aws-lambda";
 import { StatusCodes } from "http-status-codes";
+
+import { extractOrgId, makeApiGwResponse } from "../api-gateway-util";
 import {
   benchmarkDefinitionsTableName,
   benchmarkRunsTableName,
   benchmarkValuesTableName,
   monitoredMetricsTableName,
 } from "../environment-variables";
+import { currentTimestamp } from "../time-source";
+import { generateUuid } from "../uuid-generator";
 
 const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
@@ -60,11 +61,11 @@ export const handlePostRequest = async (
     data: JSON.stringify(parsedRun),
   });
 
-  const benchmarkId = parsedRun["benchmarkId"];
-  const executedOn = parsedRun["executedOn"];
-  const jenkinsJobNumber = isNaN(parsedRun["jenkinsJobNumber"])
+  const benchmarkId = parsedRun.benchmarkId;
+  const executedOn = parsedRun.executedOn;
+  const jenkinsJobNumber = isNaN(parsedRun.jenkinsJobNumber)
     ? 0
-    : Number(parsedRun["jenkinsJobNumber"]);
+    : Number(parsedRun.jenkinsJobNumber);
 
   const runPutRequest: PutItemInput = {
     TableName: benchmarkRunsTableName,
@@ -79,15 +80,15 @@ export const handlePostRequest = async (
     data: JSON.stringify(runPutRequest),
   });
 
-  const valuesPutRequests: WriteRequest[] = parsedRun["metrics"].map(
+  const valuesPutRequests: WriteRequest[] = parsedRun.metrics.map(
     (metric: any) => ({
       PutRequest: {
         Item: {
           fullValueId: {
-            S: orgId + "#" + benchmarkId + "#" + metric["metricDefinitionId"],
+            S: orgId + "#" + benchmarkId + "#" + metric.metricDefinitionId,
           },
           executedOn: { N: executedOn.toString() },
-          value: { N: metric["value"].toString() },
+          value: { N: metric.value.toString() },
         },
       },
     }),
@@ -107,8 +108,8 @@ export const handlePostRequest = async (
     ExpressionAttributeNames: { "#metricDefinitionIds": "metricDefinitionIds" },
     ExpressionAttributeValues: {
       ":metricDefinitionIds": {
-        SS: parsedRun["metrics"].map(
-          (metric: any) => metric["metricDefinitionId"],
+        SS: parsedRun.metrics.map(
+          (metric: any) => metric.metricDefinitionId,
         ),
       },
     },
