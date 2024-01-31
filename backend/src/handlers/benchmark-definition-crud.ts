@@ -1,17 +1,26 @@
 import {
   ConditionalCheckFailedException,
   DeleteItemCommand,
+  BatchGetItemCommand,
   DynamoDBClient,
   GetItemCommand,
   PutItemCommand,
   ScanCommand,
 } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
-import { type APIGatewayProxyEvent, type APIGatewayProxyResult } from "aws-lambda";
+import {
+  type APIGatewayProxyEvent,
+  type APIGatewayProxyResult,
+} from "aws-lambda";
 import { StatusCodes } from "http-status-codes";
 
 import { extractOrgId, makeApiGwResponse } from "../api-gateway-util";
-import { benchmarkDefinitionsTableName } from "../environment-variables";
+import {
+  useCasesTableName,
+  environmentsTableName,
+  productsTableName,
+  benchmarkDefinitionsTableName,
+} from "../environment-variables";
 import {
   BenchmarkDefinition,
   BenchmarkDefinitionKey,
@@ -184,7 +193,45 @@ const handlePostRequest = async (
   });
   parsedBenchmarkDefinition.id = generateUuid();
 
+  const referencedEntitiesRequests = {
+    [useCasesTableName]: {
+      Keys: [{
+        orgId: { S: orgId },
+        id: { S: parsedBenchmarkDefinition.useCaseId },
+      }],
+    },
+    [environmentsTableName]: {
+      Keys: [{
+        orgId: { S: orgId },
+        id: { S: parsedBenchmarkDefinition.environmentId },
+      }],
+    },
+    [productsTableName]: {
+      Keys: [{
+        orgId: { S: orgId },
+        id: { S: parsedBenchmarkDefinition.productId },
+      }],
+    },
+  };
+  console.error({
+    event: "Referenced entities requests",
+    data: referencedEntitiesRequests,
+  });
   try {
+    const referencedEntities = await ddbDocClient.send(
+      new BatchGetItemCommand({
+        RequestItems: referencedEntitiesRequests
+      })
+    );
+    const referencedEntitiesResponses = referencedEntities.Responses || {};
+    const missingUseCase = referencedEntitiesResponses[useCasesTableName].length === 0;
+    const missingEnvironment = referencedEntitiesResponses[environmentsTableName].length === 0;
+    const missingProduct = referencedEntitiesResponses[productsTableName].length === 0;
+    if(missingUseCase || missingEnvironment || missingProduct) {
+      return makeApiGwResponse(StatusCodes.NOT_FOUND, {
+        message: "Linked entity not found",
+      });
+    }
     const lastUploadedTimestamp: number = currentTimestamp();
     console.debug({
       event: "Marking benchmark as last updated on",

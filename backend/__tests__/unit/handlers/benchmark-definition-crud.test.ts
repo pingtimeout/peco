@@ -5,6 +5,7 @@ import {
   test_rejection_if_missing_authorizer,
 } from "../handler-util";
 import {
+  BatchGetItemCommand,
   ScanCommand,
   PutItemCommand,
   DeleteItemCommand,
@@ -19,6 +20,9 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 jest.mock("../../../src/environment-variables", () => {
   return {
     __esModule: true,
+    useCasesTableName: "MockUseCasesTable",
+    environmentsTableName: "MockEnvironmentsTable",
+    productsTableName: "MockProductsTable",
     benchmarkDefinitionsTableName: "MockBenchmarkDefinitionsTable",
   };
 });
@@ -76,7 +80,7 @@ describe("Test handlePostRequest", () => {
   });
 
   it("should override user-provided benchmark-definition id and last updated date", async () => {
-    const eventWithId: Partial<APIGatewayProxyEvent> = {
+    const event: Partial<APIGatewayProxyEvent> = {
       headers: {
         "content-type": "application/json",
       },
@@ -100,9 +104,16 @@ describe("Test handlePostRequest", () => {
       }),
     };
 
-    const result = await handleAnyRequest(eventWithId as APIGatewayProxyEvent);
+    ddbMock.resolves({
+      Responses: {
+        MockUseCasesTable: [{}],
+        MockEnvironmentsTable: [{}],
+        MockProductsTable: [{}],
+      },
+    });
+    const result = await handleAnyRequest(event as APIGatewayProxyEvent);
 
-    expect(ddbMock.calls().length).toEqual(1);
+    expect(ddbMock.calls().length).toEqual(2);
     expect(ddbMock).toHaveReceivedCommandWith(PutItemCommand, {
       TableName: "MockBenchmarkDefinitionsTable",
       Item: {
@@ -138,6 +149,328 @@ describe("Test handlePostRequest", () => {
         jenkinsJobUrl: "the-jenkins-job-url",
         tags: [{ name: "the-tag-name", value: "the-tag-value" }],
         lastUploadedTimestamp: 1706201101633,
+      }),
+    });
+  });
+
+  it("should verify existence of linked use-case, environment and product", async () => {
+    const event: Partial<APIGatewayProxyEvent> = {
+      headers: {
+        "content-type": "application/json",
+      },
+      httpMethod: "POST",
+      // @ts-ignore
+      requestContext: {
+        authorizer: {
+          claims: {
+            "custom:orgId": "the-org-id",
+          },
+        },
+      },
+      body: JSON.stringify({
+        id: "the-id",
+        useCaseId: "the-use-case-id",
+        environmentId: "the-environment-id",
+        productId: "the-product-id",
+        tags: [{ name: "the-tag-name", value: "the-tag-value" }],
+      }),
+    };
+
+    ddbMock
+      .on(BatchGetItemCommand, {
+        RequestItems: {
+          MockUseCasesTable: {
+            Keys: [
+              {
+                orgId: { S: "the-org-id" },
+                id: { S: "the-use-case-id" },
+              },
+            ],
+          },
+          MockEnvironmentsTable: {
+            Keys: [
+              {
+                orgId: { S: "the-org-id" },
+                id: { S: "the-environment-id" },
+              },
+            ],
+          },
+          MockProductsTable: {
+            Keys: [
+              {
+                orgId: { S: "the-org-id" },
+                id: { S: "the-product-id" },
+              },
+            ],
+          },
+        },
+      })
+      .resolves({
+        Responses: {
+          MockUseCasesTable: [{}],
+          MockEnvironmentsTable: [{}],
+          MockProductsTable: [{}],
+        },
+      });
+    const result = await handleAnyRequest(event as APIGatewayProxyEvent);
+
+    expect(ddbMock.calls().length).toEqual(2);
+    expect(ddbMock).toHaveReceivedCommandWith(BatchGetItemCommand, {
+      RequestItems: {
+        MockUseCasesTable: {
+          Keys: [
+            {
+              orgId: { S: "the-org-id" },
+              id: { S: "the-use-case-id" },
+            },
+          ],
+        },
+        MockEnvironmentsTable: {
+          Keys: [
+            {
+              orgId: { S: "the-org-id" },
+              id: { S: "the-environment-id" },
+            },
+          ],
+        },
+        MockProductsTable: {
+          Keys: [
+            {
+              orgId: { S: "the-org-id" },
+              id: { S: "the-product-id" },
+            },
+          ],
+        },
+      },
+    });
+    expect(result).toEqual({
+      statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: JSON.stringify({
+        id: "00000000-1111-2222-3333-444444444444",
+        useCaseId: "the-use-case-id",
+        environmentId: "the-environment-id",
+        productId: "the-product-id",
+        tags: [{ name: "the-tag-name", value: "the-tag-value" }],
+        lastUploadedTimestamp: 1706201101633,
+      }),
+    });
+  });
+
+  it("should reject when referenced use-case is missing", async () => {
+    const event: Partial<APIGatewayProxyEvent> = {
+      headers: {
+        "content-type": "application/json",
+      },
+      httpMethod: "POST",
+      // @ts-ignore
+      requestContext: {
+        authorizer: {
+          claims: {
+            "custom:orgId": "the-org-id",
+          },
+        },
+      },
+      body: JSON.stringify({
+        id: "the-id",
+        useCaseId: "the-use-case-id",
+        environmentId: "the-environment-id",
+        productId: "the-product-id",
+        tags: [{ name: "the-tag-name", value: "the-tag-value" }],
+      }),
+    };
+
+    ddbMock
+      .on(BatchGetItemCommand, {
+        RequestItems: {
+          MockUseCasesTable: {
+            Keys: [
+              {
+                orgId: { S: "the-org-id" },
+                id: { S: "the-use-case-id" },
+              },
+            ],
+          },
+          MockEnvironmentsTable: {
+            Keys: [
+              {
+                orgId: { S: "the-org-id" },
+                id: { S: "the-environment-id" },
+              },
+            ],
+          },
+          MockProductsTable: {
+            Keys: [
+              {
+                orgId: { S: "the-org-id" },
+                id: { S: "the-product-id" },
+              },
+            ],
+          },
+        },
+      })
+      .resolves({
+        Responses: {
+          MockUseCasesTable: [],
+          MockEnvironmentsTable: [{}],
+          MockProductsTable: [{}],
+        },
+      });
+    const result = await handleAnyRequest(event as APIGatewayProxyEvent);
+
+    expect(result).toEqual({
+      statusCode: 404,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: JSON.stringify({
+        message: "Linked entity not found",
+      }),
+    });
+  });
+
+  it("should reject when referenced environment is missing", async () => {
+    const event: Partial<APIGatewayProxyEvent> = {
+      headers: {
+        "content-type": "application/json",
+      },
+      httpMethod: "POST",
+      // @ts-ignore
+      requestContext: {
+        authorizer: {
+          claims: {
+            "custom:orgId": "the-org-id",
+          },
+        },
+      },
+      body: JSON.stringify({
+        id: "the-id",
+        useCaseId: "the-use-case-id",
+        environmentId: "the-environment-id",
+        productId: "the-product-id",
+        tags: [{ name: "the-tag-name", value: "the-tag-value" }],
+      }),
+    };
+
+    ddbMock
+      .on(BatchGetItemCommand, {
+        RequestItems: {
+          MockUseCasesTable: {
+            Keys: [
+              {
+                orgId: { S: "the-org-id" },
+                id: { S: "the-use-case-id" },
+              },
+            ],
+          },
+          MockEnvironmentsTable: {
+            Keys: [
+              {
+                orgId: { S: "the-org-id" },
+                id: { S: "the-environment-id" },
+              },
+            ],
+          },
+          MockProductsTable: {
+            Keys: [
+              {
+                orgId: { S: "the-org-id" },
+                id: { S: "the-product-id" },
+              },
+            ],
+          },
+        },
+      })
+      .resolves({
+        Responses: {
+          MockUseCasesTable: [{}],
+          MockEnvironmentsTable: [],
+          MockProductsTable: [{}],
+        },
+      });
+    const result = await handleAnyRequest(event as APIGatewayProxyEvent);
+
+    expect(result).toEqual({
+      statusCode: 404,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: JSON.stringify({
+        message: "Linked entity not found",
+      }),
+    });
+  });
+
+  it("should reject when referenced product is missing", async () => {
+    const event: Partial<APIGatewayProxyEvent> = {
+      headers: {
+        "content-type": "application/json",
+      },
+      httpMethod: "POST",
+      // @ts-ignore
+      requestContext: {
+        authorizer: {
+          claims: {
+            "custom:orgId": "the-org-id",
+          },
+        },
+      },
+      body: JSON.stringify({
+        id: "the-id",
+        useCaseId: "the-use-case-id",
+        environmentId: "the-environment-id",
+        productId: "the-product-id",
+        tags: [{ name: "the-tag-name", value: "the-tag-value" }],
+      }),
+    };
+
+    ddbMock
+      .on(BatchGetItemCommand, {
+        RequestItems: {
+          MockUseCasesTable: {
+            Keys: [
+              {
+                orgId: { S: "the-org-id" },
+                id: { S: "the-use-case-id" },
+              },
+            ],
+          },
+          MockEnvironmentsTable: {
+            Keys: [
+              {
+                orgId: { S: "the-org-id" },
+                id: { S: "the-environment-id" },
+              },
+            ],
+          },
+          MockProductsTable: {
+            Keys: [
+              {
+                orgId: { S: "the-org-id" },
+                id: { S: "the-product-id" },
+              },
+            ],
+          },
+        },
+      })
+      .resolves({
+        Responses: {
+          MockUseCasesTable: [{}],
+          MockEnvironmentsTable: [{}],
+          MockProductsTable: [],
+        },
+      });
+    const result = await handleAnyRequest(event as APIGatewayProxyEvent);
+
+    expect(result).toEqual({
+      statusCode: 404,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: JSON.stringify({
+        message: "Linked entity not found",
       }),
     });
   });
