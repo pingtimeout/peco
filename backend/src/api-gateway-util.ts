@@ -1,4 +1,7 @@
-import { type APIGatewayProxyEvent, type APIGatewayProxyResult } from "aws-lambda";
+import {
+  type APIGatewayProxyEvent,
+  type APIGatewayProxyResult,
+} from "aws-lambda";
 
 export function extractOrgId(event: APIGatewayProxyEvent): string | undefined {
   const claims = event.requestContext?.authorizer?.claims || {};

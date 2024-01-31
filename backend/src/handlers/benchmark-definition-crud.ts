@@ -195,22 +195,28 @@ const handlePostRequest = async (
 
   const referencedEntitiesRequests = {
     [useCasesTableName]: {
-      Keys: [{
-        orgId: { S: orgId },
-        id: { S: parsedBenchmarkDefinition.useCaseId },
-      }],
+      Keys: [
+        {
+          orgId: { S: orgId },
+          id: { S: parsedBenchmarkDefinition.useCaseId },
+        },
+      ],
     },
     [environmentsTableName]: {
-      Keys: [{
-        orgId: { S: orgId },
-        id: { S: parsedBenchmarkDefinition.environmentId },
-      }],
+      Keys: [
+        {
+          orgId: { S: orgId },
+          id: { S: parsedBenchmarkDefinition.environmentId },
+        },
+      ],
     },
     [productsTableName]: {
-      Keys: [{
-        orgId: { S: orgId },
-        id: { S: parsedBenchmarkDefinition.productId },
-      }],
+      Keys: [
+        {
+          orgId: { S: orgId },
+          id: { S: parsedBenchmarkDefinition.productId },
+        },
+      ],
     },
   };
   console.error({
@@ -220,14 +226,17 @@ const handlePostRequest = async (
   try {
     const referencedEntities = await ddbDocClient.send(
       new BatchGetItemCommand({
-        RequestItems: referencedEntitiesRequests
-      })
+        RequestItems: referencedEntitiesRequests,
+      }),
     );
     const referencedEntitiesResponses = referencedEntities.Responses || {};
-    const missingUseCase = referencedEntitiesResponses[useCasesTableName].length === 0;
-    const missingEnvironment = referencedEntitiesResponses[environmentsTableName].length === 0;
-    const missingProduct = referencedEntitiesResponses[productsTableName].length === 0;
-    if(missingUseCase || missingEnvironment || missingProduct) {
+    const missingUseCase =
+      referencedEntitiesResponses[useCasesTableName].length === 0;
+    const missingEnvironment =
+      referencedEntitiesResponses[environmentsTableName].length === 0;
+    const missingProduct =
+      referencedEntitiesResponses[productsTableName].length === 0;
+    if (missingUseCase || missingEnvironment || missingProduct) {
       return makeApiGwResponse(StatusCodes.NOT_FOUND, {
         message: "Linked entity not found",
       });

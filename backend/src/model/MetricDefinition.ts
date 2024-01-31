@@ -62,9 +62,7 @@ export class MetricDefinition {
       parsedMetricDefinition.description,
       parsedMetricDefinition.unit,
       parsedMetricDefinition.regressionDirection,
-      parsedMetricDefinition.tags?.map(
-        (tag) => new Tag(tag.name, tag.value),
-      ),
+      parsedMetricDefinition.tags?.map((tag) => new Tag(tag.name, tag.value)),
     );
   }
 

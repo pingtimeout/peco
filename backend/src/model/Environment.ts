@@ -47,9 +47,7 @@ export class Environment {
       parsedEnvironment.id,
       parsedEnvironment.name,
       parsedEnvironment.description,
-      parsedEnvironment.tags?.map(
-        (tag) => new Tag(tag.name, tag.value),
-      ),
+      parsedEnvironment.tags?.map((tag) => new Tag(tag.name, tag.value)),
     );
   }
 
