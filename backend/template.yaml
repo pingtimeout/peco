@@ -613,12 +613,23 @@ Resources:
           AttributeType: S
         - AttributeName: id
           AttributeType: S
+        - AttributeName: lastUploadedTimestamp
+          AttributeType: N
       KeySchema:
         - AttributeName: orgId
           KeyType: HASH
         - AttributeName: id
           KeyType: RANGE
       BillingMode: PAY_PER_REQUEST
+      LocalSecondaryIndexes:
+        - IndexName: BenchmarksByLastUploadedTimestamp
+          KeySchema:
+            - AttributeName: orgId
+              KeyType: HASH
+            - AttributeName: lastUploadedTimestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: KEYS_ONLY
   CrudBenchmarkDefinitionsFunction:
     Type: AWS::Serverless::Function
     Properties:
