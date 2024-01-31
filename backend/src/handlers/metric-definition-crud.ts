@@ -21,7 +21,7 @@ const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
 
 export const handleAnyRequest = async (
-  event: APIGatewayProxyEvent
+  event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   const productId: string | undefined = event.pathParameters?.id;
   const method: string = event.httpMethod;
@@ -50,7 +50,7 @@ export const handleAnyRequest = async (
 };
 
 const handleGetAllRequest = async (
-  event: APIGatewayProxyEvent
+  event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   const orgId: string | undefined = extractOrgId(event);
   if (orgId === undefined) {
@@ -77,11 +77,11 @@ const handleGetAllRequest = async (
           "#R": "regressionDirection",
           "#T": "tags",
         },
-      })
+      }),
     );
     const metricDefinitions =
       response.Items?.map((item) =>
-        MetricDefinition.fromAttributeValues(item)
+        MetricDefinition.fromAttributeValues(item),
       ).filter((u) => u !== undefined) || [];
     console.debug({
       event: "Fetched metricDefinitions",
@@ -89,7 +89,7 @@ const handleGetAllRequest = async (
     });
     return makeApiGwResponse(
       StatusCodes.OK,
-      metricDefinitions.map((u) => u.toApiModel())
+      metricDefinitions.map((u) => u.toApiModel()),
     );
   } catch (err) {
     console.error({
@@ -103,7 +103,7 @@ const handleGetAllRequest = async (
 };
 
 const handleGetRequest = async (
-  event: APIGatewayProxyEvent
+  event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   const orgId: string | undefined = extractOrgId(event);
   if (orgId === undefined) {
@@ -125,7 +125,7 @@ const handleGetRequest = async (
   });
   const metricDefinitionKey = new MetricDefinitionKey(
     orgId,
-    metricDefinitionId
+    metricDefinitionId,
   );
 
   try {
@@ -133,10 +133,10 @@ const handleGetRequest = async (
       new GetItemCommand({
         TableName: metricDefinitionsTableName,
         Key: metricDefinitionKey.toAttributeValues(),
-      })
+      }),
     );
     const metricDefinition = MetricDefinition.fromAttributeValues(
-      response.Item
+      response.Item,
     );
     console.debug({
       event: "Fetched metricDefinition",
@@ -159,7 +159,7 @@ const handleGetRequest = async (
 };
 
 const handlePostRequest = async (
-  event: APIGatewayProxyEvent
+  event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   const contentType = event.headers["content-type"];
   if (contentType !== "application/json") {
@@ -184,7 +184,7 @@ const handlePostRequest = async (
   parsedMetricDefinition["id"] = generateUuid();
   const metricDefinition = MetricDefinition.fromApiModel(
     orgId,
-    parsedMetricDefinition
+    parsedMetricDefinition,
   );
 
   try {
@@ -192,7 +192,7 @@ const handlePostRequest = async (
       new PutItemCommand({
         TableName: metricDefinitionsTableName,
         Item: metricDefinition.toAttributeValues(),
-      })
+      }),
     );
     console.debug({ event: "Added metricDefinition" });
     return makeApiGwResponse(StatusCodes.OK, parsedMetricDefinition);
@@ -208,7 +208,7 @@ const handlePostRequest = async (
 };
 
 const handlePutRequest = async (
-  event: APIGatewayProxyEvent
+  event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   const contentType = event.headers["content-type"];
   if (contentType !== "application/json") {
@@ -243,7 +243,7 @@ const handlePutRequest = async (
   });
   const metricDefinition = MetricDefinition.fromApiModel(
     orgId,
-    parsedMetricDefinition
+    parsedMetricDefinition,
   );
 
   if (parsedMetricDefinition["id"] !== metricDefinitionId) {
@@ -258,7 +258,7 @@ const handlePutRequest = async (
         TableName: metricDefinitionsTableName,
         Item: metricDefinition.toAttributeValues(),
         ConditionExpression: "attribute_exists(orgId) AND attribute_exists(id)",
-      })
+      }),
     );
     console.debug({ event: "Updated metricDefinition" });
     return makeApiGwResponse(StatusCodes.OK, parsedMetricDefinition);
@@ -280,7 +280,7 @@ const handlePutRequest = async (
 };
 
 const handleDeleteRequest = async (
-  event: APIGatewayProxyEvent
+  event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   const orgId: string | undefined = extractOrgId(event);
   if (orgId === undefined) {
@@ -302,7 +302,7 @@ const handleDeleteRequest = async (
   });
   const metricDefinitionKey = new MetricDefinitionKey(
     orgId,
-    metricDefinitionId
+    metricDefinitionId,
   );
 
   try {
@@ -311,7 +311,7 @@ const handleDeleteRequest = async (
         TableName: metricDefinitionsTableName,
         Key: metricDefinitionKey.toAttributeValues(),
         ConditionExpression: "attribute_exists(orgId) AND attribute_exists(id)",
-      })
+      }),
     );
     console.debug({ event: "Deleted metricDefinition" });
   } catch (err) {

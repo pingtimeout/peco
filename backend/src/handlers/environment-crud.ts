@@ -18,7 +18,7 @@ const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
 
 export const handleAnyRequest = async (
-  event: APIGatewayProxyEvent
+  event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   const productId: string | undefined = event.pathParameters?.id;
   const method: string = event.httpMethod;
@@ -47,7 +47,7 @@ export const handleAnyRequest = async (
 };
 
 const handleGetAllRequest = async (
-  event: APIGatewayProxyEvent
+  event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   const orgId: string | undefined = extractOrgId(event);
   if (orgId === undefined) {
@@ -72,16 +72,16 @@ const handleGetAllRequest = async (
           "#N": "name",
           "#T": "tags",
         },
-      })
+      }),
     );
     const environments =
       response.Items?.map((item) =>
-        Environment.fromAttributeValues(item)
+        Environment.fromAttributeValues(item),
       ).filter((u) => u !== undefined) || [];
     console.debug({ event: "Fetched environments", data: environments });
     return makeApiGwResponse(
       StatusCodes.OK,
-      environments.map((u) => u.toApiModel())
+      environments.map((u) => u.toApiModel()),
     );
   } catch (err) {
     console.error({ event: "Failed to fetch environments", data: err.stack });
@@ -92,7 +92,7 @@ const handleGetAllRequest = async (
 };
 
 const handleGetRequest = async (
-  event: APIGatewayProxyEvent
+  event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   const orgId: string | undefined = extractOrgId(event);
   if (orgId === undefined) {
@@ -116,7 +116,7 @@ const handleGetRequest = async (
       new GetItemCommand({
         TableName: environmentsTableName,
         Key: environmentKey.toAttributeValues(),
-      })
+      }),
     );
     const environment = Environment.fromAttributeValues(response.Item);
     console.debug({ event: "Fetched environment", data: environment });
@@ -134,7 +134,7 @@ const handleGetRequest = async (
 };
 
 const handlePostRequest = async (
-  event: APIGatewayProxyEvent
+  event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   const contentType = event.headers["content-type"];
   if (contentType !== "application/json") {
@@ -161,7 +161,7 @@ const handlePostRequest = async (
       new PutItemCommand({
         TableName: environmentsTableName,
         Item: environment.toAttributeValues(),
-      })
+      }),
     );
     console.debug({ event: "Added environment" });
     return makeApiGwResponse(StatusCodes.OK, parsedEnvironment);
@@ -174,7 +174,7 @@ const handlePostRequest = async (
 };
 
 const handlePutRequest = async (
-  event: APIGatewayProxyEvent
+  event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   const contentType = event.headers["content-type"];
   if (contentType !== "application/json") {
@@ -215,7 +215,7 @@ const handlePutRequest = async (
         TableName: environmentsTableName,
         Item: environment.toAttributeValues(),
         ConditionExpression: "attribute_exists(orgId) AND attribute_exists(id)",
-      })
+      }),
     );
     console.debug({ event: "Updated environment" });
     return makeApiGwResponse(StatusCodes.OK, parsedEnvironment);
@@ -234,7 +234,7 @@ const handlePutRequest = async (
 };
 
 const handleDeleteRequest = async (
-  event: APIGatewayProxyEvent
+  event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   const orgId: string | undefined = extractOrgId(event);
   if (orgId === undefined) {
@@ -259,7 +259,7 @@ const handleDeleteRequest = async (
         TableName: environmentsTableName,
         Key: environmentKey.toAttributeValues(),
         ConditionExpression: "attribute_exists(orgId) AND attribute_exists(id)",
-      })
+      }),
     );
     console.debug({ event: "Deleted environment" });
   } catch (err) {

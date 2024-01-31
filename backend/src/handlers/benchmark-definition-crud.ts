@@ -22,7 +22,7 @@ const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
 
 export const handleAnyRequest = async (
-  event: APIGatewayProxyEvent
+  event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   const productId: string | undefined = event.pathParameters?.id;
   const method: string = event.httpMethod;
@@ -51,7 +51,7 @@ export const handleAnyRequest = async (
 };
 
 const handleGetAllRequest = async (
-  event: APIGatewayProxyEvent
+  event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   const orgId: string | undefined = extractOrgId(event);
   if (orgId === undefined) {
@@ -80,11 +80,11 @@ const handleGetAllRequest = async (
           "#T": "tags",
           "#L": "lastUploadedTimestamp",
         },
-      })
+      }),
     );
     const benchmarkDefinitions =
       response.Items?.map((item) =>
-        BenchmarkDefinition.fromAttributeValues(item)
+        BenchmarkDefinition.fromAttributeValues(item),
       ).filter((u) => u !== undefined) || [];
     console.debug({
       event: "Fetched benchmarkDefinitions",
@@ -92,7 +92,7 @@ const handleGetAllRequest = async (
     });
     return makeApiGwResponse(
       StatusCodes.OK,
-      benchmarkDefinitions.map((u) => u.toApiModel())
+      benchmarkDefinitions.map((u) => u.toApiModel()),
     );
   } catch (err) {
     console.log("Failed to fetch benchmarkDefinition", err.stack);
@@ -103,7 +103,7 @@ const handleGetAllRequest = async (
 };
 
 const handleGetRequest = async (
-  event: APIGatewayProxyEvent
+  event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   const orgId: string | undefined = extractOrgId(event);
   if (orgId === undefined) {
@@ -125,7 +125,7 @@ const handleGetRequest = async (
   });
   const benchmarkDefinitionKey = new BenchmarkDefinitionKey(
     orgId,
-    benchmarkDefinitionId
+    benchmarkDefinitionId,
   );
 
   try {
@@ -133,10 +133,10 @@ const handleGetRequest = async (
       new GetItemCommand({
         TableName: benchmarkDefinitionsTableName,
         Key: benchmarkDefinitionKey.toAttributeValues(),
-      })
+      }),
     );
     const benchmarkDefinition = BenchmarkDefinition.fromAttributeValues(
-      response.Item
+      response.Item,
     );
     console.debug({
       event: "Fetched benchmarkDefinition",
@@ -147,7 +147,7 @@ const handleGetRequest = async (
     } else {
       return makeApiGwResponse(
         StatusCodes.OK,
-        benchmarkDefinition.toApiModel()
+        benchmarkDefinition.toApiModel(),
       );
     }
   } catch (err) {
@@ -159,7 +159,7 @@ const handleGetRequest = async (
 };
 
 const handlePostRequest = async (
-  event: APIGatewayProxyEvent
+  event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   const contentType = event.headers["content-type"];
   if (contentType !== "application/json") {
@@ -193,7 +193,7 @@ const handlePostRequest = async (
     const benchmarkDefinition = BenchmarkDefinition.fromApiModel(
       orgId,
       parsedBenchmarkDefinition,
-      lastUploadedTimestamp
+      lastUploadedTimestamp,
     );
     console.debug({
       event: "Created benchmark definition",
@@ -203,7 +203,7 @@ const handlePostRequest = async (
       new PutItemCommand({
         TableName: benchmarkDefinitionsTableName,
         Item: benchmarkDefinition.toAttributeValues(),
-      })
+      }),
     );
     console.debug({ event: "Added benchmarkDefinition" });
     return makeApiGwResponse(StatusCodes.OK, benchmarkDefinition.toApiModel());
@@ -216,7 +216,7 @@ const handlePostRequest = async (
 };
 
 const handlePutRequest = async (
-  event: APIGatewayProxyEvent
+  event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   const contentType = event.headers["content-type"];
   if (contentType !== "application/json") {
@@ -265,7 +265,7 @@ const handlePutRequest = async (
     const benchmarkDefinition = BenchmarkDefinition.fromApiModel(
       orgId,
       parsedBenchmarkDefinition,
-      lastUploadedTimestamp
+      lastUploadedTimestamp,
     );
     console.debug({
       event: "Created benchmark definition",
@@ -276,7 +276,7 @@ const handlePutRequest = async (
         ConditionExpression: "attribute_exists(orgId) AND attribute_exists(id)",
         TableName: benchmarkDefinitionsTableName,
         Item: benchmarkDefinition.toAttributeValues(),
-      })
+      }),
     );
     console.debug({ event: "Added benchmarkDefinition" });
     return makeApiGwResponse(StatusCodes.OK, benchmarkDefinition.toApiModel());
@@ -295,7 +295,7 @@ const handlePutRequest = async (
 };
 
 const handleDeleteRequest = async (
-  event: APIGatewayProxyEvent
+  event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   const orgId: string | undefined = extractOrgId(event);
   if (orgId === undefined) {
@@ -317,7 +317,7 @@ const handleDeleteRequest = async (
   });
   const benchmarkDefinitionKey = new BenchmarkDefinitionKey(
     orgId,
-    benchmarkDefinitionId
+    benchmarkDefinitionId,
   );
 
   try {
@@ -326,7 +326,7 @@ const handleDeleteRequest = async (
         TableName: benchmarkDefinitionsTableName,
         Key: benchmarkDefinitionKey.toAttributeValues(),
         ConditionExpression: "attribute_exists(orgId) AND attribute_exists(id)",
-      })
+      }),
     );
     console.debug({ event: "Deleted benchmarkDefinition" });
   } catch (err) {

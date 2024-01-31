@@ -68,14 +68,14 @@ export class BenchmarkDefinition {
       parsedBenchmarkDefinition["productId"],
       parsedBenchmarkDefinition["jenkinsJobUrl"],
       parsedBenchmarkDefinition["tags"]?.map(
-        (tag) => new Tag(tag["name"], tag["value"])
+        (tag) => new Tag(tag["name"], tag["value"]),
       ),
       lastUploadedTimestamp,
     );
   }
 
   static fromAttributeValues(
-    attrs: Record<string, AttributeValue> | undefined
+    attrs: Record<string, AttributeValue> | undefined,
   ): BenchmarkDefinition | undefined {
     if (attrs === undefined) {
       return undefined;

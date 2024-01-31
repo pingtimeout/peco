@@ -47,7 +47,7 @@ describe("Test handlePostRequest", () => {
       ddbMock,
       handleAnyRequest,
       undefined,
-      "POST"
+      "POST",
     );
   });
 
@@ -56,7 +56,7 @@ describe("Test handlePostRequest", () => {
       ddbMock,
       handleAnyRequest,
       undefined,
-      "POST"
+      "POST",
     );
   });
 
@@ -65,7 +65,7 @@ describe("Test handlePostRequest", () => {
       ddbMock,
       handleAnyRequest,
       undefined,
-      "POST"
+      "POST",
     );
   });
 

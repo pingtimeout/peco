@@ -4,14 +4,14 @@ export async function test_rejection_if_not_json_content_type(
   ddbMock: any,
   requestHandler: (e: APIGatewayProxyEvent) => Promise<APIGatewayProxyResult>,
   entityId: string | undefined,
-  httpMethod: string
+  httpMethod: string,
 ) {
   const apiGatewayEvent: Partial<APIGatewayProxyEvent> = {
     headers: {
       "content-type": "application/x-www-form-urlencoded",
     },
     httpMethod: httpMethod,
-    ...( entityId && { pathParameters: {id: entityId} } ),
+    ...(entityId && { pathParameters: { id: entityId } }),
   };
   const result = await requestHandler(apiGatewayEvent as APIGatewayProxyEvent);
   expect(ddbMock.calls().length).toEqual(0);
@@ -30,7 +30,7 @@ export async function test_rejection_if_missing_authorizer(
   ddbMock: any,
   requestHandler: (e: APIGatewayProxyEvent) => Promise<APIGatewayProxyResult>,
   entityId: string | undefined,
-  httpMethod: string
+  httpMethod: string,
 ) {
   const eventWithoutAuthorizer: Partial<APIGatewayProxyEvent> = {
     headers: {
@@ -39,10 +39,10 @@ export async function test_rejection_if_missing_authorizer(
     // @ts-ignore
     requestContext: {},
     httpMethod: httpMethod,
-    ...( entityId && { pathParameters: {id: entityId} } ),
+    ...(entityId && { pathParameters: { id: entityId } }),
   };
   const resultWithoutAuthorizer = await requestHandler(
-    eventWithoutAuthorizer as APIGatewayProxyEvent
+    eventWithoutAuthorizer as APIGatewayProxyEvent,
   );
   expect(ddbMock.calls().length).toEqual(0);
   expect(resultWithoutAuthorizer).toEqual({
@@ -60,7 +60,7 @@ export async function test_rejection_if_missing_orgId(
   ddbMock: any,
   requestHandler: (e: APIGatewayProxyEvent) => Promise<APIGatewayProxyResult>,
   entityId: string | undefined,
-  httpMethod: string
+  httpMethod: string,
 ) {
   const eventWithoutOrgId: Partial<APIGatewayProxyEvent> = {
     headers: {
@@ -73,10 +73,10 @@ export async function test_rejection_if_missing_orgId(
       },
     },
     httpMethod: httpMethod,
-    ...( entityId && { pathParameters: {id: entityId} } ),
+    ...(entityId && { pathParameters: { id: entityId } }),
   };
   const resultWithoutOrgId = await requestHandler(
-    eventWithoutOrgId as APIGatewayProxyEvent
+    eventWithoutOrgId as APIGatewayProxyEvent,
   );
   expect(ddbMock.calls().length).toEqual(0);
   expect(resultWithoutOrgId).toEqual({

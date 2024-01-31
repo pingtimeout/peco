@@ -12,7 +12,7 @@ export class Product {
     id: string,
     name: string | undefined,
     description: string | undefined,
-    tags: Tag[] | undefined
+    tags: Tag[] | undefined,
   ) {
     this.key = new ProductKey(orgId, id);
     this.name = name;
@@ -46,12 +46,12 @@ export class Product {
       parsedProduct["id"],
       parsedProduct["name"],
       parsedProduct["description"],
-      parsedProduct["tags"]?.map((tag) => new Tag(tag["name"], tag["value"]))
+      parsedProduct["tags"]?.map((tag) => new Tag(tag["name"], tag["value"])),
     );
   }
 
   static fromAttributeValues(
-    attrs: Record<string, AttributeValue> | undefined
+    attrs: Record<string, AttributeValue> | undefined,
   ): Product | undefined {
     if (attrs === undefined) {
       return undefined;
@@ -61,7 +61,7 @@ export class Product {
         attrs["id"].S!,
         attrs["name"].S,
         attrs["description"]?.S,
-        attrs["tags"].L?.map((tag) => new Tag(tag.M!.name.S!, tag.M!.value.S!))
+        attrs["tags"].L?.map((tag) => new Tag(tag.M!.name.S!, tag.M!.value.S!)),
       );
     }
   }

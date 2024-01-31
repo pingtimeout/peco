@@ -12,7 +12,7 @@ export class Environment {
     id: string,
     name: string | undefined,
     description: string | undefined,
-    tags: Tag[] | undefined
+    tags: Tag[] | undefined,
   ) {
     this.key = new EnvironmentKey(orgId, id);
     this.name = name;
@@ -46,12 +46,14 @@ export class Environment {
       parsedEnvironment["id"],
       parsedEnvironment["name"],
       parsedEnvironment["description"],
-      parsedEnvironment["tags"]?.map((tag) => new Tag(tag["name"], tag["value"]))
+      parsedEnvironment["tags"]?.map(
+        (tag) => new Tag(tag["name"], tag["value"]),
+      ),
     );
   }
 
   static fromAttributeValues(
-    attrs: Record<string, AttributeValue> | undefined
+    attrs: Record<string, AttributeValue> | undefined,
   ): Environment | undefined {
     if (attrs === undefined) {
       return undefined;
@@ -61,7 +63,7 @@ export class Environment {
         attrs["id"].S!,
         attrs["name"].S,
         attrs["description"]?.S,
-        attrs["tags"].L?.map((tag) => new Tag(tag.M!.name.S!, tag.M!.value.S!))
+        attrs["tags"].L?.map((tag) => new Tag(tag.M!.name.S!, tag.M!.value.S!)),
       );
     }
   }

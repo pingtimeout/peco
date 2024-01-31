@@ -24,7 +24,7 @@ const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
 
 export const handleAnyRequest = async (
-  event: APIGatewayProxyEvent
+  event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   const method: string = event.httpMethod;
   console.debug({ event: "Dispatching query", data: { httpMethod: method } });
@@ -38,7 +38,7 @@ export const handleAnyRequest = async (
 };
 
 export const handlePostRequest = async (
-  event: APIGatewayProxyEvent
+  event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   const contentType = event.headers["content-type"];
   if (contentType !== "application/json") {
@@ -90,7 +90,7 @@ export const handlePostRequest = async (
           value: { N: metric["value"].toString() },
         },
       },
-    })
+    }),
   );
   console.debug({
     event: "Values put requests",
@@ -108,7 +108,7 @@ export const handlePostRequest = async (
     ExpressionAttributeValues: {
       ":metricDefinitionIds": {
         SS: parsedRun["metrics"].map(
-          (metric: any) => metric["metricDefinitionId"]
+          (metric: any) => metric["metricDefinitionId"],
         ),
       },
     },
@@ -142,13 +142,13 @@ export const handlePostRequest = async (
         RequestItems: {
           [benchmarkValuesTableName]: valuesPutRequests,
         },
-      })
+      }),
     );
     const metricsUpdatePromise = ddbDocClient.send(
-      new UpdateItemCommand(metricsUpdateRequest)
+      new UpdateItemCommand(metricsUpdateRequest),
     );
     const benchmarkDefinitionsUpdatePromise = ddbDocClient.send(
-      new UpdateItemCommand(benchmarkDefinitionUpdateRequest)
+      new UpdateItemCommand(benchmarkDefinitionUpdateRequest),
     );
 
     await runPutPromise;

@@ -38,7 +38,7 @@ exports.handler = async (event: {
   userName: any;
 }): Promise<any> => {
   const usagePlansOutputPromise = apiGatewayClient.send(
-    new GetUsagePlansCommand({})
+    new GetUsagePlansCommand({}),
   );
 
   const orgId = newOrgId();
@@ -64,10 +64,10 @@ exports.handler = async (event: {
     generateDistinctId: false,
   };
   await cognitoIdentityServiceProvider.send(
-    new AdminUpdateUserAttributesCommand(updateUserAttributesParams)
+    new AdminUpdateUserAttributesCommand(updateUserAttributesParams),
   );
   const apiKeyOutput = await apiGatewayClient.send(
-    new CreateApiKeyCommand(createApiKeyParams)
+    new CreateApiKeyCommand(createApiKeyParams),
   );
   const usagePlansOutput = await usagePlansOutputPromise;
 
@@ -78,7 +78,7 @@ exports.handler = async (event: {
     keyType: "API_KEY",
   };
   await apiGatewayClient.send(
-    new CreateUsagePlanKeyCommand(createUsagePlanKeyParams)
+    new CreateUsagePlanKeyCommand(createUsagePlanKeyParams),
   );
 
   return event;

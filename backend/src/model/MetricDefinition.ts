@@ -16,7 +16,7 @@ export class MetricDefinition {
     description: string | undefined,
     unit: string,
     regressionDirection: string,
-    tags: Tag[] | undefined
+    tags: Tag[] | undefined,
   ) {
     this.key = new MetricDefinitionKey(orgId, id);
     this.name = name;
@@ -52,7 +52,7 @@ export class MetricDefinition {
 
   static fromApiModel(
     orgId: string,
-    parsedMetricDefinition: any
+    parsedMetricDefinition: any,
   ): MetricDefinition {
     return new MetricDefinition(
       orgId,
@@ -62,13 +62,13 @@ export class MetricDefinition {
       parsedMetricDefinition["unit"],
       parsedMetricDefinition["regressionDirection"],
       parsedMetricDefinition["tags"]?.map(
-        (tag) => new Tag(tag["name"], tag["value"])
-      )
+        (tag) => new Tag(tag["name"], tag["value"]),
+      ),
     );
   }
 
   static fromAttributeValues(
-    attrs: Record<string, AttributeValue> | undefined
+    attrs: Record<string, AttributeValue> | undefined,
   ): MetricDefinition | undefined {
     if (attrs === undefined) {
       return undefined;
@@ -80,7 +80,7 @@ export class MetricDefinition {
         attrs["description"]?.S,
         attrs["unit"].S!,
         attrs["regressionDirection"].S!,
-        attrs["tags"].L?.map((tag) => new Tag(tag.M!.name.S!, tag.M!.value.S!))
+        attrs["tags"].L?.map((tag) => new Tag(tag.M!.name.S!, tag.M!.value.S!)),
       );
     }
   }

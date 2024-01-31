@@ -53,7 +53,7 @@ describe("Test handlePostRequest", () => {
       ddbMock,
       handleAnyRequest,
       undefined,
-      "POST"
+      "POST",
     );
   });
 
@@ -62,7 +62,7 @@ describe("Test handlePostRequest", () => {
       ddbMock,
       handleAnyRequest,
       undefined,
-      "POST"
+      "POST",
     );
   });
 
@@ -71,7 +71,7 @@ describe("Test handlePostRequest", () => {
       ddbMock,
       handleAnyRequest,
       undefined,
-      "POST"
+      "POST",
     );
   });
 
@@ -155,7 +155,7 @@ describe("Test handleGetRequest", () => {
       ddbMock,
       handleAnyRequest,
       "123",
-      "GET"
+      "GET",
     );
   });
 
@@ -291,7 +291,7 @@ describe("Test handlePutRequest", () => {
       ddbMock,
       handleAnyRequest,
       "123",
-      "PUT"
+      "PUT",
     );
   });
 
@@ -300,7 +300,7 @@ describe("Test handlePutRequest", () => {
       ddbMock,
       handleAnyRequest,
       "123",
-      "PUT"
+      "PUT",
     );
   });
 
@@ -335,7 +335,7 @@ describe("Test handlePutRequest", () => {
     };
 
     const result = await handleAnyRequest(
-      eventWithoutId as APIGatewayProxyEvent
+      eventWithoutId as APIGatewayProxyEvent,
     );
 
     expect(ddbMock.calls().length).toEqual(0);
@@ -505,7 +505,7 @@ describe("Test handleDeleteRequest", () => {
       ddbMock,
       handleAnyRequest,
       "123",
-      "DELETE"
+      "DELETE",
     );
   });
 
@@ -617,7 +617,7 @@ describe("Test handleGetAllRequest", () => {
       ddbMock,
       handleAnyRequest,
       undefined,
-      "GET"
+      "GET",
     );
   });
 
@@ -626,7 +626,7 @@ describe("Test handleGetAllRequest", () => {
       ddbMock,
       handleAnyRequest,
       undefined,
-      "GET"
+      "GET",
     );
   });
 
@@ -793,7 +793,7 @@ describe("Test handleGetAllRequest", () => {
 async function test_rejection_if_missing_defn_id(
   ddbMock: any,
   requestHandler: (e: APIGatewayProxyEvent) => Promise<APIGatewayProxyResult>,
-  httpMethod: string
+  httpMethod: string,
 ) {
   const eventWithoutId: Partial<APIGatewayProxyEvent> = {
     headers: {

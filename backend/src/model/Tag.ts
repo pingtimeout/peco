@@ -22,6 +22,6 @@ export class Tag {
     return {
       name: this.name,
       value: this.value,
-    }
+    };
   }
 }

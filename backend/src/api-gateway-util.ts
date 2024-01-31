@@ -7,7 +7,7 @@ export function extractOrgId(event: APIGatewayProxyEvent): string | undefined {
 
 export function makeApiGwResponse(
   statusCode: number,
-  body: any
+  body: any,
 ): APIGatewayProxyResult {
   return {
     statusCode: statusCode,

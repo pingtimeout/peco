@@ -216,7 +216,8 @@ Resources:
               type: string
             unit:
               type: string
-              enum: ["percent", "bytes/s", "milliseconds", "bytes", "ops/s", "none"]
+              enum:
+                ["percent", "bytes/s", "milliseconds", "bytes", "ops/s", "none"]
             regressionDirection:
               type: string
               enum: ["up", "down"]
@@ -602,7 +603,8 @@ Resources:
     DependsOn: CrudMetricDefinitionsFunction
     Properties:
       RetentionInDays: 30
-      LogGroupName: !Join ["", ["/aws/lambda/", !Ref CrudMetricDefinitionsFunction]]
+      LogGroupName:
+        !Join ["", ["/aws/lambda/", !Ref CrudMetricDefinitionsFunction]]
 
   BenchmarkDefinitionsTable:
     Type: AWS::DynamoDB::Table
@@ -692,8 +694,8 @@ Resources:
     DependsOn: CrudBenchmarkDefinitionsFunction
     Properties:
       RetentionInDays: 30
-      LogGroupName: !Join ["", ["/aws/lambda/", !Ref CrudBenchmarkDefinitionsFunction]]
-
+      LogGroupName:
+        !Join ["", ["/aws/lambda/", !Ref CrudBenchmarkDefinitionsFunction]]
 
   MonitoredMetricsTable:
     Type: AWS::DynamoDB::Table
