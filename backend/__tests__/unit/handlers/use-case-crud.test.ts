@@ -1,20 +1,22 @@
-import { handleAnyRequest } from "../../../src/handlers/use-case-crud";
+import "aws-sdk-client-mock-jest";
+
 import {
-  test_rejection_if_not_json_content_type,
-  test_rejection_if_missing_orgId,
-  test_rejection_if_missing_authorizer,
-} from "../handler-util";
-import {
-  ScanCommand,
-  PutItemCommand,
-  DeleteItemCommand,
   ConditionalCheckFailedException,
+  DeleteItemCommand,
   GetItemCommand,
+  PutItemCommand,
+  ScanCommand,
 } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+import { type APIGatewayProxyEvent, type APIGatewayProxyResult } from "aws-lambda";
 import { mockClient } from "aws-sdk-client-mock";
-import "aws-sdk-client-mock-jest";
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+
+import { handleAnyRequest } from "../../../src/handlers/use-case-crud";
+import {
+  test_rejection_if_missing_authorizer,
+  test_rejection_if_missing_orgId,
+  test_rejection_if_not_json_content_type,
+} from "../handler-util";
 
 jest.mock("../../../src/environment-variables", () => {
   return {
@@ -72,7 +74,7 @@ describe("Test handlePostRequest", () => {
         "content-type": "application/json",
       },
       httpMethod: "POST",
-      // @ts-ignore
+      // @ts-expect-error
       requestContext: {
         authorizer: {
           claims: {
@@ -151,7 +153,7 @@ describe("Test handleGetRequest", () => {
         "content-type": "application/json",
       },
       httpMethod: "GET",
-      // @ts-ignore
+      // @ts-expect-error
       requestContext: {
         authorizer: {
           claims: {
@@ -192,7 +194,7 @@ describe("Test handleGetRequest", () => {
         "content-type": "application/json",
       },
       httpMethod: "GET",
-      // @ts-ignore
+      // @ts-expect-error
       requestContext: {
         authorizer: {
           claims: {
@@ -296,7 +298,7 @@ describe("Test handlePutRequest", () => {
         "content-type": "application/json",
       },
       httpMethod: "PUT",
-      // @ts-ignore
+      // @ts-expect-error
       requestContext: {
         authorizer: {
           claims: {
@@ -334,7 +336,7 @@ describe("Test handlePutRequest", () => {
         "content-type": "application/json",
       },
       httpMethod: "PUT",
-      // @ts-ignore
+      // @ts-expect-error
       requestContext: {
         authorizer: {
           claims: {
@@ -400,7 +402,7 @@ describe("Test handlePutRequest", () => {
         "content-type": "application/json",
       },
       httpMethod: "PUT",
-      // @ts-ignore
+      // @ts-expect-error
       requestContext: {
         authorizer: {
           claims: {
@@ -493,7 +495,7 @@ describe("Test handleDeleteRequest", () => {
         "content-type": "application/json",
       },
       httpMethod: "DELETE",
-      // @ts-ignore
+      // @ts-expect-error
       requestContext: {
         authorizer: {
           claims: {
@@ -532,7 +534,7 @@ describe("Test handleDeleteRequest", () => {
         "content-type": "application/json",
       },
       httpMethod: "DELETE",
-      // @ts-ignore
+      // @ts-expect-error
       requestContext: {
         authorizer: {
           claims: {
@@ -606,7 +608,7 @@ describe("Test handleGetAllRequest", () => {
         "content-type": "application/json",
       },
       httpMethod: "GET",
-      // @ts-ignore
+      // @ts-expect-error
       requestContext: {
         authorizer: {
           claims: {
@@ -762,7 +764,7 @@ async function test_rejection_if_missing_use_case_id(
     headers: {
       "content-type": "application/json",
     },
-    // @ts-ignore
+    // @ts-expect-error
     requestContext: {
       authorizer: {
         claims: {
@@ -770,7 +772,7 @@ async function test_rejection_if_missing_use_case_id(
         },
       },
     },
-    httpMethod: httpMethod,
+    httpMethod,
   };
 
   const result = await requestHandler(eventWithoutId as APIGatewayProxyEvent);

@@ -1,7 +1,7 @@
 import {
+  BatchGetItemCommand,
   ConditionalCheckFailedException,
   DeleteItemCommand,
-  BatchGetItemCommand,
   DynamoDBClient,
   GetItemCommand,
   PutItemCommand,
@@ -16,10 +16,10 @@ import { StatusCodes } from "http-status-codes";
 
 import { extractOrgId, makeApiGwResponse } from "../api-gateway-util";
 import {
-  useCasesTableName,
+  benchmarkDefinitionsTableName,
   environmentsTableName,
   productsTableName,
-  benchmarkDefinitionsTableName,
+  useCasesTableName,
 } from "../environment-variables";
 import {
   BenchmarkDefinition,

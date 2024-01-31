@@ -1,20 +1,22 @@
-import { handleAnyRequest } from "../../../src/handlers/benchmark-run-crud";
+import "aws-sdk-client-mock-jest";
+
 import {
-  test_rejection_if_not_json_content_type,
-  test_rejection_if_missing_orgId,
-  test_rejection_if_missing_authorizer,
-} from "../handler-util";
-import {
-  PutItemCommand,
-  UpdateItemCommand,
   BatchWriteItemCommand,
   DeleteItemCommand,
   GetItemCommand,
+  PutItemCommand,
+  UpdateItemCommand,
 } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+import { type APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { mockClient } from "aws-sdk-client-mock";
-import "aws-sdk-client-mock-jest";
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+
+import { handleAnyRequest } from "../../../src/handlers/benchmark-run-crud";
+import {
+  test_rejection_if_missing_authorizer,
+  test_rejection_if_missing_orgId,
+  test_rejection_if_not_json_content_type,
+} from "../handler-util";
 
 jest.mock("../../../src/time-source", () => {
   const originalModule = jest.requireActual("../../../src/time-source");
@@ -75,7 +77,7 @@ describe("Test handlePostRequest", () => {
         "content-type": "application/json",
       },
       httpMethod: "POST",
-      // @ts-ignore
+      // @ts-expect-error
       requestContext: {
         authorizer: {
           claims: {
@@ -128,7 +130,7 @@ describe("Test handlePostRequest", () => {
         "content-type": "application/json",
       },
       httpMethod: "POST",
-      // @ts-ignore
+      // @ts-expect-error
       requestContext: {
         authorizer: {
           claims: {
@@ -175,7 +177,7 @@ describe("Test handlePostRequest", () => {
         "content-type": "application/json",
       },
       httpMethod: "POST",
-      // @ts-ignore
+      // @ts-expect-error
       requestContext: {
         authorizer: {
           claims: {
@@ -265,7 +267,7 @@ describe("Test handlePostRequest", () => {
         "content-type": "application/json",
       },
       httpMethod: "POST",
-      // @ts-ignore
+      // @ts-expect-error
       requestContext: {
         authorizer: {
           claims: {

@@ -1,4 +1,4 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { type APIGatewayProxyEvent, type APIGatewayProxyResult } from "aws-lambda";
 
 export async function test_rejection_if_not_json_content_type(
   ddbMock: any,
@@ -10,7 +10,7 @@ export async function test_rejection_if_not_json_content_type(
     headers: {
       "content-type": "application/x-www-form-urlencoded",
     },
-    httpMethod: httpMethod,
+    httpMethod,
     ...(entityId && { pathParameters: { id: entityId } }),
   };
   const result = await requestHandler(apiGatewayEvent as APIGatewayProxyEvent);
@@ -36,9 +36,9 @@ export async function test_rejection_if_missing_authorizer(
     headers: {
       "content-type": "application/json",
     },
-    // @ts-ignore
+    // @ts-expect-error
     requestContext: {},
-    httpMethod: httpMethod,
+    httpMethod,
     ...(entityId && { pathParameters: { id: entityId } }),
   };
   const resultWithoutAuthorizer = await requestHandler(
@@ -66,13 +66,13 @@ export async function test_rejection_if_missing_orgId(
     headers: {
       "content-type": "application/json",
     },
-    // @ts-ignore
+    // @ts-expect-error
     requestContext: {
       authorizer: {
         claims: {},
       },
     },
-    httpMethod: httpMethod,
+    httpMethod,
     ...(entityId && { pathParameters: { id: entityId } }),
   };
   const resultWithoutOrgId = await requestHandler(
