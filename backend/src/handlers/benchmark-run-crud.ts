@@ -122,7 +122,7 @@ export const handlePostRequest = async (
     TableName: benchmarkDefinitionsTableName,
     Key: {
       orgId: { S: orgId },
-      benchmarkId: { S: benchmarkId },
+      id: { S: benchmarkId },
     },
     UpdateExpression: "SET #L = :l",
     ExpressionAttributeNames: { "#L": "lastUploadedTimestamp" },

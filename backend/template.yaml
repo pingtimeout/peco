@@ -735,6 +735,8 @@ Resources:
       Handler: src/handlers/benchmark-run-crud.handleAnyRequest
       Policies:
         - DynamoDBCrudPolicy:
+            TableName: !Ref BenchmarkDefinitionsTable
+        - DynamoDBCrudPolicy:
             TableName: !Ref BenchmarkRunsTable
         - DynamoDBCrudPolicy:
             TableName: !Ref BenchmarkValuesTable
@@ -742,6 +744,7 @@ Resources:
             TableName: !Ref MonitoredMetricsTable
       Environment:
         Variables:
+          BENCHMARK_DEFINITIONS_TABLE_NAME: !Ref BenchmarkDefinitionsTable
           BENCHMARK_RUNS_TABLE_NAME: !Ref BenchmarkRunsTable
           BENCHMARK_VALUES_TABLE_NAME: !Ref BenchmarkValuesTable
           MONITORED_METRICS_TABLE_NAME: !Ref MonitoredMetricsTable
