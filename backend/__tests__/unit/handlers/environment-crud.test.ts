@@ -16,6 +16,13 @@ import { mockClient } from "aws-sdk-client-mock";
 import "aws-sdk-client-mock-jest";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 
+jest.mock("../../../src/environment-variables", () => {
+  return {
+    __esModule: true,
+    environmentsTableName: "MockEnvironmentsTable",
+  };
+});
+
 jest.mock("../../../src/uuid-generator", () => {
   const originalModule = jest.requireActual("../../../src/uuid-generator");
   return {
@@ -85,7 +92,7 @@ describe("Test handlePostRequest", () => {
 
     expect(ddbMock.calls().length).toEqual(1);
     expect(ddbMock).toHaveReceivedCommandWith(PutItemCommand, {
-      TableName: undefined,
+      TableName: "MockEnvironmentsTable",
       Item: {
         orgId: { S: "the-org-id" },
         id: { S: "00000000-1111-2222-3333-444444444444" },
@@ -162,7 +169,7 @@ describe("Test handleGetRequest", () => {
 
     expect(ddbMock.calls().length).toEqual(1);
     expect(ddbMock).toHaveReceivedCommandWith(GetItemCommand, {
-      TableName: undefined,
+      TableName: "MockEnvironmentsTable",
       Key: {
         orgId: { S: "the-org-id" },
         id: { S: "unknown-environment-id" },
@@ -227,7 +234,7 @@ describe("Test handleGetRequest", () => {
 
     expect(ddbMock.calls().length).toEqual(1);
     expect(ddbMock).toHaveReceivedCommandWith(GetItemCommand, {
-      TableName: undefined,
+      TableName: "MockEnvironmentsTable",
       Key: {
         orgId: { S: "the-org-id" },
         id: { S: "existing-environment-id" },
@@ -353,7 +360,7 @@ describe("Test handlePutRequest", () => {
     expect(ddbMock.calls().length).toEqual(1);
     expect(ddbMock).toHaveReceivedCommandWith(PutItemCommand, {
       ConditionExpression: "attribute_exists(orgId) AND attribute_exists(id)",
-      TableName: undefined,
+      TableName: "MockEnvironmentsTable",
       Item: {
         orgId: { S: "the-org-id" },
         id: { S: "existing-environment-id" },
@@ -426,7 +433,7 @@ describe("Test handlePutRequest", () => {
     expect(ddbMock.calls().length).toEqual(1);
     expect(ddbMock).toHaveReceivedCommandWith(PutItemCommand, {
       ConditionExpression: "attribute_exists(orgId) AND attribute_exists(id)",
-      TableName: undefined,
+      TableName: "MockEnvironmentsTable",
       Item: {
         orgId: { S: "the-org-id" },
         id: { S: "existing-environment-id" },
@@ -504,7 +511,7 @@ describe("Test handleDeleteRequest", () => {
     expect(ddbMock.calls().length).toEqual(1);
     expect(ddbMock).toHaveReceivedCommandWith(DeleteItemCommand, {
       ConditionExpression: "attribute_exists(orgId) AND attribute_exists(id)",
-      TableName: undefined,
+      TableName: "MockEnvironmentsTable",
       Key: {
         orgId: { S: "the-org-id" },
         id: { S: "existing-environment-id" },
@@ -550,7 +557,7 @@ describe("Test handleDeleteRequest", () => {
     expect(ddbMock.calls().length).toEqual(1);
     expect(ddbMock).toHaveReceivedCommandWith(DeleteItemCommand, {
       ConditionExpression: "attribute_exists(orgId) AND attribute_exists(id)",
-      TableName: undefined,
+      TableName: "MockEnvironmentsTable",
       Key: {
         orgId: { S: "the-org-id" },
         id: { S: "existing-environment-id" },
@@ -611,7 +618,7 @@ describe("Test handleGetAllRequest", () => {
 
     ddbMock
       .on(ScanCommand, {
-        TableName: undefined,
+        TableName: "MockEnvironmentsTable",
         ExpressionAttributeNames: {
           "#O": "orgId",
           "#I": "id",
@@ -698,7 +705,7 @@ describe("Test handleGetAllRequest", () => {
 
     expect(ddbMock.calls().length).toEqual(1);
     expect(ddbMock).toHaveReceivedCommandWith(ScanCommand, {
-      TableName: undefined,
+      TableName: "MockEnvironmentsTable",
       ExpressionAttributeNames: {
         "#O": "orgId",
         "#I": "id",

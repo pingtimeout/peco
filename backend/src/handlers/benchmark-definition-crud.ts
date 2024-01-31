@@ -15,12 +15,11 @@ import {
   BenchmarkDefinition,
   BenchmarkDefinitionKey,
 } from "../model/BenchmarkDefinition";
+import { benchmarkDefinitionsTableName } from "../environment-variables";
 import { StatusCodes } from "http-status-codes";
 
 const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
-const benchmarkDefinitionTableName =
-  process.env.BENCHMARK_DEFINITION_TABLE_NAME;
 
 export const handleAnyRequest = async (
   event: APIGatewayProxyEvent
@@ -65,7 +64,7 @@ const handleGetAllRequest = async (
   try {
     const response = await ddbDocClient.send(
       new ScanCommand({
-        TableName: benchmarkDefinitionTableName,
+        TableName: benchmarkDefinitionsTableName,
         FilterExpression: "orgId = :O",
         ExpressionAttributeValues: {
           ":O": { S: orgId },
@@ -132,7 +131,7 @@ const handleGetRequest = async (
   try {
     const response = await ddbDocClient.send(
       new GetItemCommand({
-        TableName: benchmarkDefinitionTableName,
+        TableName: benchmarkDefinitionsTableName,
         Key: benchmarkDefinitionKey.toAttributeValues(),
       })
     );
@@ -202,7 +201,7 @@ const handlePostRequest = async (
     });
     await ddbDocClient.send(
       new PutItemCommand({
-        TableName: benchmarkDefinitionTableName,
+        TableName: benchmarkDefinitionsTableName,
         Item: benchmarkDefinition.toAttributeValues(),
       })
     );
@@ -275,7 +274,7 @@ const handlePutRequest = async (
     await ddbDocClient.send(
       new PutItemCommand({
         ConditionExpression: "attribute_exists(orgId) AND attribute_exists(id)",
-        TableName: benchmarkDefinitionTableName,
+        TableName: benchmarkDefinitionsTableName,
         Item: benchmarkDefinition.toAttributeValues(),
       })
     );
@@ -324,7 +323,7 @@ const handleDeleteRequest = async (
   try {
     await ddbDocClient.send(
       new DeleteItemCommand({
-        TableName: benchmarkDefinitionTableName,
+        TableName: benchmarkDefinitionsTableName,
         Key: benchmarkDefinitionKey.toAttributeValues(),
         ConditionExpression: "attribute_exists(orgId) AND attribute_exists(id)",
       })

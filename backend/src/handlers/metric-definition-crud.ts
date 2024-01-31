@@ -15,10 +15,10 @@ import {
   MetricDefinitionKey,
 } from "../model/MetricDefinition";
 import { StatusCodes } from "http-status-codes";
+import { metricDefinitionsTableName } from "../environment-variables";
 
 const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
-const metricDefinitionTableName = process.env.METRIC_DEFINITION_TABLE_NAME;
 
 export const handleAnyRequest = async (
   event: APIGatewayProxyEvent
@@ -63,7 +63,7 @@ const handleGetAllRequest = async (
   try {
     const response = await ddbDocClient.send(
       new ScanCommand({
-        TableName: metricDefinitionTableName,
+        TableName: metricDefinitionsTableName,
         FilterExpression: "orgId = :O",
         ExpressionAttributeValues: {
           ":O": { S: orgId },
@@ -131,7 +131,7 @@ const handleGetRequest = async (
   try {
     const response = await ddbDocClient.send(
       new GetItemCommand({
-        TableName: metricDefinitionTableName,
+        TableName: metricDefinitionsTableName,
         Key: metricDefinitionKey.toAttributeValues(),
       })
     );
@@ -190,7 +190,7 @@ const handlePostRequest = async (
   try {
     await ddbDocClient.send(
       new PutItemCommand({
-        TableName: metricDefinitionTableName,
+        TableName: metricDefinitionsTableName,
         Item: metricDefinition.toAttributeValues(),
       })
     );
@@ -255,7 +255,7 @@ const handlePutRequest = async (
   try {
     await ddbDocClient.send(
       new PutItemCommand({
-        TableName: metricDefinitionTableName,
+        TableName: metricDefinitionsTableName,
         Item: metricDefinition.toAttributeValues(),
         ConditionExpression: "attribute_exists(orgId) AND attribute_exists(id)",
       })
@@ -308,7 +308,7 @@ const handleDeleteRequest = async (
   try {
     await ddbDocClient.send(
       new DeleteItemCommand({
-        TableName: metricDefinitionTableName,
+        TableName: metricDefinitionsTableName,
         Key: metricDefinitionKey.toAttributeValues(),
         ConditionExpression: "attribute_exists(orgId) AND attribute_exists(id)",
       })

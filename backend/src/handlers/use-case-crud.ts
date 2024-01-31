@@ -12,10 +12,10 @@ import {
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { UseCase, UseCaseKey } from "../model/UseCase";
 import { StatusCodes } from "http-status-codes";
+import { useCasesTableName } from "../environment-variables";
 
 const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
-const useCaseTableName = process.env.USE_CASE_TABLE_NAME;
 
 export const handleAnyRequest = async (
   event: APIGatewayProxyEvent
@@ -60,7 +60,7 @@ const handleGetAllRequest = async (
   try {
     const response = await ddbDocClient.send(
       new ScanCommand({
-        TableName: useCaseTableName,
+        TableName: useCasesTableName,
         FilterExpression: "orgId = :O",
         ExpressionAttributeValues: {
           ":O": { S: orgId },
@@ -114,7 +114,7 @@ const handleGetRequest = async (
   try {
     const response = await ddbDocClient.send(
       new GetItemCommand({
-        TableName: useCaseTableName,
+        TableName: useCasesTableName,
         Key: useCaseKey.toAttributeValues(),
       })
     );
@@ -159,7 +159,7 @@ const handlePostRequest = async (
   try {
     await ddbDocClient.send(
       new PutItemCommand({
-        TableName: useCaseTableName,
+        TableName: useCasesTableName,
         Item: useCase.toAttributeValues(),
       })
     );
@@ -212,7 +212,7 @@ const handlePutRequest = async (
   try {
     await ddbDocClient.send(
       new PutItemCommand({
-        TableName: useCaseTableName,
+        TableName: useCasesTableName,
         Item: useCase.toAttributeValues(),
         ConditionExpression: "attribute_exists(orgId) AND attribute_exists(id)",
       })
@@ -256,7 +256,7 @@ const handleDeleteRequest = async (
   try {
     await ddbDocClient.send(
       new DeleteItemCommand({
-        TableName: useCaseTableName,
+        TableName: useCasesTableName,
         Key: useCaseKey.toAttributeValues(),
         ConditionExpression: "attribute_exists(orgId) AND attribute_exists(id)",
       })

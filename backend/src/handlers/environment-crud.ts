@@ -12,10 +12,10 @@ import {
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { Environment, EnvironmentKey } from "../model/Environment";
 import { StatusCodes } from "http-status-codes";
+import { environmentsTableName } from "../environment-variables";
 
 const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
-const environmentTableName = process.env.ENVIRONMENT_TABLE_NAME;
 
 export const handleAnyRequest = async (
   event: APIGatewayProxyEvent
@@ -60,7 +60,7 @@ const handleGetAllRequest = async (
   try {
     const response = await ddbDocClient.send(
       new ScanCommand({
-        TableName: environmentTableName,
+        TableName: environmentsTableName,
         FilterExpression: "orgId = :O",
         ExpressionAttributeValues: {
           ":O": { S: orgId },
@@ -114,7 +114,7 @@ const handleGetRequest = async (
   try {
     const response = await ddbDocClient.send(
       new GetItemCommand({
-        TableName: environmentTableName,
+        TableName: environmentsTableName,
         Key: environmentKey.toAttributeValues(),
       })
     );
@@ -159,7 +159,7 @@ const handlePostRequest = async (
   try {
     await ddbDocClient.send(
       new PutItemCommand({
-        TableName: environmentTableName,
+        TableName: environmentsTableName,
         Item: environment.toAttributeValues(),
       })
     );
@@ -212,7 +212,7 @@ const handlePutRequest = async (
   try {
     await ddbDocClient.send(
       new PutItemCommand({
-        TableName: environmentTableName,
+        TableName: environmentsTableName,
         Item: environment.toAttributeValues(),
         ConditionExpression: "attribute_exists(orgId) AND attribute_exists(id)",
       })
@@ -256,7 +256,7 @@ const handleDeleteRequest = async (
   try {
     await ddbDocClient.send(
       new DeleteItemCommand({
-        TableName: environmentTableName,
+        TableName: environmentsTableName,
         Key: environmentKey.toAttributeValues(),
         ConditionExpression: "attribute_exists(orgId) AND attribute_exists(id)",
       })
