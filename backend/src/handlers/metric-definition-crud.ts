@@ -180,7 +180,7 @@ const handlePostRequest = async (
   }
   console.debug({ event: "Extracted orgId", data: orgId });
 
-  const parsedMetricDefinition = JSON.parse(event.body || "{}");
+  const parsedMetricDefinition = JSON.parse(event.body ?? "{}");
   console.debug({
     event: "Parsed metricDefinition",
     data: parsedMetricDefinition,
@@ -240,7 +240,7 @@ const handlePutRequest = async (
     data: metricDefinitionId,
   });
 
-  const parsedMetricDefinition = JSON.parse(event.body || "{}");
+  const parsedMetricDefinition = JSON.parse(event.body ?? "{}");
   console.debug({
     event: "Parsed metricDefinition",
     data: parsedMetricDefinition,

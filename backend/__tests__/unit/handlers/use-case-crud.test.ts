@@ -8,7 +8,10 @@ import {
   ScanCommand,
 } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
-import { type APIGatewayProxyEvent, type APIGatewayProxyResult } from "aws-lambda";
+import {
+  type APIGatewayProxyEvent,
+  type APIGatewayProxyResult,
+} from "aws-lambda";
 import { mockClient } from "aws-sdk-client-mock";
 
 import { handleAnyRequest } from "../../../src/handlers/use-case-crud";
@@ -42,7 +45,7 @@ describe("Test handlePostRequest", () => {
   });
 
   it("should reject queries using other than JSON content type", async () => {
-    test_rejection_if_not_json_content_type(
+    await test_rejection_if_not_json_content_type(
       ddbMock,
       handleAnyRequest,
       undefined,
@@ -51,7 +54,7 @@ describe("Test handlePostRequest", () => {
   });
 
   it("should reject queries with no authorizer", async () => {
-    test_rejection_if_missing_authorizer(
+    await test_rejection_if_missing_authorizer(
       ddbMock,
       handleAnyRequest,
       undefined,
@@ -60,7 +63,7 @@ describe("Test handlePostRequest", () => {
   });
 
   it("should reject queries with no orgId in claims", async () => {
-    test_rejection_if_missing_orgId(
+    await test_rejection_if_missing_orgId(
       ddbMock,
       handleAnyRequest,
       undefined,
@@ -68,8 +71,65 @@ describe("Test handlePostRequest", () => {
     );
   });
 
+  it("should handle user-provided use-case without id", async () => {
+    const event: Partial<APIGatewayProxyEvent> = {
+      headers: {
+        "content-type": "application/json",
+      },
+      httpMethod: "POST",
+      // @ts-expect-error
+      requestContext: {
+        authorizer: {
+          claims: {
+            "custom:orgId": "the-org-id",
+          },
+        },
+      },
+      body: JSON.stringify({
+        name: "the-name",
+        description: "the-description",
+        tags: [{ name: "the-tag-name", value: "the-tag-value" }],
+      }),
+    };
+
+    const result = await handleAnyRequest(event as APIGatewayProxyEvent);
+
+    expect(ddbMock.calls().length).toEqual(1);
+    expect(ddbMock).toHaveReceivedCommandWith(PutItemCommand, {
+      TableName: "MockUseCasesTable",
+      Item: {
+        orgId: { S: "the-org-id" },
+        id: { S: "00000000-1111-2222-3333-444444444444" },
+        name: { S: "the-name" },
+        description: { S: "the-description" },
+        tags: {
+          L: [
+            {
+              M: {
+                name: { S: "the-tag-name" },
+                value: { S: "the-tag-value" },
+              },
+            },
+          ],
+        },
+      },
+    });
+    expect(result).toEqual({
+      statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: JSON.stringify({
+        name: "the-name",
+        description: "the-description",
+        tags: [{ name: "the-tag-name", value: "the-tag-value" }],
+        id: "00000000-1111-2222-3333-444444444444",
+      }),
+    });
+  });
+
   it("should override user-provided use-case id", async () => {
-    const eventWithId: Partial<APIGatewayProxyEvent> = {
+    const event: Partial<APIGatewayProxyEvent> = {
       headers: {
         "content-type": "application/json",
       },
@@ -90,7 +150,7 @@ describe("Test handlePostRequest", () => {
       }),
     };
 
-    const result = await handleAnyRequest(eventWithId as APIGatewayProxyEvent);
+    const result = await handleAnyRequest(event as APIGatewayProxyEvent);
 
     expect(ddbMock.calls().length).toEqual(1);
     expect(ddbMock).toHaveReceivedCommandWith(PutItemCommand, {
@@ -135,7 +195,7 @@ describe("Test handleGetRequest", () => {
   });
 
   it("should reject queries with no authorizer", async () => {
-    test_rejection_if_missing_authorizer(
+    await test_rejection_if_missing_authorizer(
       ddbMock,
       handleAnyRequest,
       "123",
@@ -144,11 +204,16 @@ describe("Test handleGetRequest", () => {
   });
 
   it("should reject queries with no orgId in claims", async () => {
-    test_rejection_if_missing_orgId(ddbMock, handleAnyRequest, "123", "GET");
+    await test_rejection_if_missing_orgId(
+      ddbMock,
+      handleAnyRequest,
+      "123",
+      "GET",
+    );
   });
 
   it("should handle not found use-cases", async () => {
-    const eventWithId: Partial<APIGatewayProxyEvent> = {
+    const event: Partial<APIGatewayProxyEvent> = {
       headers: {
         "content-type": "application/json",
       },
@@ -167,7 +232,7 @@ describe("Test handleGetRequest", () => {
     };
 
     ddbMock.resolves({});
-    const result = await handleAnyRequest(eventWithId as APIGatewayProxyEvent);
+    const result = await handleAnyRequest(event as APIGatewayProxyEvent);
 
     expect(ddbMock.calls().length).toEqual(1);
     expect(ddbMock).toHaveReceivedCommandWith(GetItemCommand, {
@@ -189,7 +254,7 @@ describe("Test handleGetRequest", () => {
   });
 
   it("should find existing use-case", async () => {
-    const eventWithId: Partial<APIGatewayProxyEvent> = {
+    const event: Partial<APIGatewayProxyEvent> = {
       headers: {
         "content-type": "application/json",
       },
@@ -232,7 +297,7 @@ describe("Test handleGetRequest", () => {
           },
         },
       });
-    const result = await handleAnyRequest(eventWithId as APIGatewayProxyEvent);
+    const result = await handleAnyRequest(event as APIGatewayProxyEvent);
 
     expect(ddbMock.calls().length).toEqual(1);
     expect(ddbMock).toHaveReceivedCommandWith(GetItemCommand, {
@@ -248,12 +313,12 @@ describe("Test handleGetRequest", () => {
         "Access-Control-Allow-Origin": "*",
       },
       body: JSON.stringify({
-        id: "existing-use-case-id",
         name: "the-returned-name",
         description: "the-returned-description",
         tags: [
           { name: "the-returned-tag-name", value: "the-returned-tag-value" },
         ],
+        id: "existing-use-case-id",
       }),
     });
   });
@@ -267,7 +332,7 @@ describe("Test handlePutRequest", () => {
   });
 
   it("should reject queries using other than JSON content type", async () => {
-    test_rejection_if_not_json_content_type(
+    await test_rejection_if_not_json_content_type(
       ddbMock,
       handleAnyRequest,
       "123",
@@ -276,7 +341,7 @@ describe("Test handlePutRequest", () => {
   });
 
   it("should reject queries with no authorizer", async () => {
-    test_rejection_if_missing_authorizer(
+    await test_rejection_if_missing_authorizer(
       ddbMock,
       handleAnyRequest,
       "123",
@@ -285,11 +350,20 @@ describe("Test handlePutRequest", () => {
   });
 
   it("should reject queries with no orgId in claims", async () => {
-    test_rejection_if_missing_orgId(ddbMock, handleAnyRequest, "123", "PUT");
+    await test_rejection_if_missing_orgId(
+      ddbMock,
+      handleAnyRequest,
+      "123",
+      "PUT",
+    );
   });
 
   it("should handle missing use-case id", async () => {
-    test_rejection_if_missing_use_case_id(ddbMock, handleAnyRequest, "PUT");
+    await test_rejection_if_missing_use_case_id(
+      ddbMock,
+      handleAnyRequest,
+      "PUT",
+    );
   });
 
   it("should handle mismatch between path parameter id and payload id", async () => {
@@ -331,7 +405,7 @@ describe("Test handlePutRequest", () => {
   });
 
   it("should update use-case with user-provided data", async () => {
-    const eventWithId: Partial<APIGatewayProxyEvent> = {
+    const event: Partial<APIGatewayProxyEvent> = {
       headers: {
         "content-type": "application/json",
       },
@@ -357,7 +431,7 @@ describe("Test handlePutRequest", () => {
       }),
     };
 
-    const result = await handleAnyRequest(eventWithId as APIGatewayProxyEvent);
+    const result = await handleAnyRequest(event as APIGatewayProxyEvent);
 
     expect(ddbMock.calls().length).toEqual(1);
     expect(ddbMock).toHaveReceivedCommandWith(PutItemCommand, {
@@ -397,7 +471,7 @@ describe("Test handlePutRequest", () => {
   });
 
   it("should not overwrite missing use-case", async () => {
-    const eventWithId: Partial<APIGatewayProxyEvent> = {
+    const event: Partial<APIGatewayProxyEvent> = {
       headers: {
         "content-type": "application/json",
       },
@@ -430,7 +504,7 @@ describe("Test handlePutRequest", () => {
       });
     });
 
-    const result = await handleAnyRequest(eventWithId as APIGatewayProxyEvent);
+    const result = await handleAnyRequest(event as APIGatewayProxyEvent);
 
     expect(ddbMock.calls().length).toEqual(1);
     expect(ddbMock).toHaveReceivedCommandWith(PutItemCommand, {
@@ -473,7 +547,7 @@ describe("Test handleDeleteRequest", () => {
   });
 
   it("should reject queries with no authorizer", async () => {
-    test_rejection_if_missing_authorizer(
+    await test_rejection_if_missing_authorizer(
       ddbMock,
       handleAnyRequest,
       "123",
@@ -482,15 +556,24 @@ describe("Test handleDeleteRequest", () => {
   });
 
   it("should reject queries with no orgId in claims", async () => {
-    test_rejection_if_missing_orgId(ddbMock, handleAnyRequest, "123", "DELETE");
+    await test_rejection_if_missing_orgId(
+      ddbMock,
+      handleAnyRequest,
+      "123",
+      "DELETE",
+    );
   });
 
   it("should handle missing use-case id", async () => {
-    test_rejection_if_missing_use_case_id(ddbMock, handleAnyRequest, "DELETE");
+    await test_rejection_if_missing_use_case_id(
+      ddbMock,
+      handleAnyRequest,
+      "DELETE",
+    );
   });
 
   it("should delete identified use-case", async () => {
-    const eventWithId: Partial<APIGatewayProxyEvent> = {
+    const event: Partial<APIGatewayProxyEvent> = {
       headers: {
         "content-type": "application/json",
       },
@@ -508,7 +591,7 @@ describe("Test handleDeleteRequest", () => {
       },
     };
 
-    const result = await handleAnyRequest(eventWithId as APIGatewayProxyEvent);
+    const result = await handleAnyRequest(event as APIGatewayProxyEvent);
 
     expect(ddbMock.calls().length).toEqual(1);
     expect(ddbMock).toHaveReceivedCommandWith(DeleteItemCommand, {
@@ -529,7 +612,7 @@ describe("Test handleDeleteRequest", () => {
   });
 
   it("should fail to delete missing use-case", async () => {
-    const eventWithId: Partial<APIGatewayProxyEvent> = {
+    const event: Partial<APIGatewayProxyEvent> = {
       headers: {
         "content-type": "application/json",
       },
@@ -554,7 +637,7 @@ describe("Test handleDeleteRequest", () => {
       });
     });
 
-    const result = await handleAnyRequest(eventWithId as APIGatewayProxyEvent);
+    const result = await handleAnyRequest(event as APIGatewayProxyEvent);
 
     expect(ddbMock.calls().length).toEqual(1);
     expect(ddbMock).toHaveReceivedCommandWith(DeleteItemCommand, {
@@ -585,7 +668,7 @@ describe("Test handleGetAllRequest", () => {
   });
 
   it("should reject queries with no authorizer", async () => {
-    test_rejection_if_missing_authorizer(
+    await test_rejection_if_missing_authorizer(
       ddbMock,
       handleAnyRequest,
       undefined,
@@ -594,7 +677,7 @@ describe("Test handleGetAllRequest", () => {
   });
 
   it("should reject queries with no orgId in claims", async () => {
-    test_rejection_if_missing_orgId(
+    await test_rejection_if_missing_orgId(
       ddbMock,
       handleAnyRequest,
       undefined,
@@ -603,7 +686,7 @@ describe("Test handleGetAllRequest", () => {
   });
 
   it("should list all use-cases", async () => {
-    const eventWithId: Partial<APIGatewayProxyEvent> = {
+    const event: Partial<APIGatewayProxyEvent> = {
       headers: {
         "content-type": "application/json",
       },
@@ -642,6 +725,7 @@ describe("Test handleGetAllRequest", () => {
             orgId: { S: "the-org-id" },
             id: { S: "use-case-id-1" },
             name: { S: "name-1" },
+            description: { S: "description-1" },
             tags: {
               L: [
                 {
@@ -663,6 +747,7 @@ describe("Test handleGetAllRequest", () => {
             orgId: { S: "the-org-id" },
             id: { S: "use-case-id-2" },
             name: { S: "name-2" },
+            description: { S: "description-2" },
             tags: {
               L: [
                 {
@@ -678,6 +763,7 @@ describe("Test handleGetAllRequest", () => {
             orgId: { S: "the-org-id" },
             id: { S: "use-case-id-3" },
             name: { S: "name-3" },
+            description: { S: "description-3" },
             tags: {
               L: [
                 {
@@ -703,7 +789,7 @@ describe("Test handleGetAllRequest", () => {
           },
         ],
       });
-    const result = await handleAnyRequest(eventWithId as APIGatewayProxyEvent);
+    const result = await handleAnyRequest(event as APIGatewayProxyEvent);
 
     expect(ddbMock.calls().length).toEqual(1);
     expect(ddbMock).toHaveReceivedCommandWith(ScanCommand, {
@@ -729,26 +815,29 @@ describe("Test handleGetAllRequest", () => {
       },
       body: JSON.stringify([
         {
-          id: "use-case-id-1",
           name: "name-1",
+          description: "description-1",
           tags: [
             { name: "tag-1-name", value: "tag-1-value-1" },
             { name: "tag-2-name", value: "tag-2-value-1" },
           ],
+          id: "use-case-id-1",
         },
         {
-          id: "use-case-id-2",
           name: "name-2",
+          description: "description-2",
           tags: [{ name: "tag-1-name", value: "tag-1-value-2" }],
+          id: "use-case-id-2",
         },
         {
-          id: "use-case-id-3",
           name: "name-3",
+          description: "description-3",
           tags: [
             { name: "tag-1-name", value: "tag-1-value-3" },
             { name: "tag-2-name", value: "tag-2-value-3" },
             { name: "tag-3-name", value: "tag-3-value-3" },
           ],
+          id: "use-case-id-3",
         },
       ]),
     });

@@ -1,23 +1,23 @@
 import { type AttributeValue } from "@aws-sdk/client-dynamodb";
 
-import { Tag } from "./Tag";
+import { type ApiTag, Tag } from "./Tag";
 
 export class MetricDefinition {
   key: MetricDefinitionKey;
-  name: string | undefined;
-  description: string | undefined;
+  name: string;
+  description: string;
   unit: string;
   regressionDirection: string;
-  tags: Tag[] | undefined;
+  tags: Tag[];
 
   constructor(
     orgId: string,
     id: string,
-    name: string | undefined,
-    description: string | undefined,
+    name: string,
+    description: string,
     unit: string,
     regressionDirection: string,
-    tags: Tag[] | undefined,
+    tags: Tag[],
   ) {
     this.key = new MetricDefinitionKey(orgId, id);
     this.name = name;
@@ -29,31 +29,29 @@ export class MetricDefinition {
 
   toAttributeValues(): Record<string, AttributeValue> {
     return {
+      name: { S: this.name },
+      description: { S: this.description },
+      unit: { S: this.unit },
+      regressionDirection: { S: this.regressionDirection },
+      tags: { L: this.tags.map((tag) => tag.toMapAttributeValue()) },
       ...this.key.toAttributeValues(),
-      ...(this.name && { name: { S: this.name } }),
-      ...(this.description && { description: { S: this.description } }),
-      ...{ unit: { S: this.unit } },
-      ...{ regressionDirection: { S: this.regressionDirection } },
-      ...(this.tags && {
-        tags: { L: this.tags.map((tag) => tag.toMapAttributeValue()) },
-      }),
     };
   }
 
-  toApiModel() {
+  toApiModel(): ApiMetricDefinition {
     return {
+      name: this.name,
+      description: this.description,
+      unit: this.unit,
+      regressionDirection: this.regressionDirection,
+      tags: this.tags.map((tag) => tag.toApiModel()),
       ...this.key.toApiModel(),
-      ...(this.name && { name: this.name }),
-      ...(this.description && { description: this.description }),
-      ...{ unit: this.unit },
-      ...{ regressionDirection: this.regressionDirection },
-      ...(this.tags && { tags: this.tags.map((tag) => tag.toApiModel()) }),
     };
   }
 
   static fromApiModel(
     orgId: string,
-    parsedMetricDefinition: any,
+    parsedMetricDefinition: ApiMetricDefinition,
   ): MetricDefinition {
     return new MetricDefinition(
       orgId,
@@ -62,25 +60,33 @@ export class MetricDefinition {
       parsedMetricDefinition.description,
       parsedMetricDefinition.unit,
       parsedMetricDefinition.regressionDirection,
-      parsedMetricDefinition.tags?.map((tag) => new Tag(tag.name, tag.value)),
+      parsedMetricDefinition.tags.map((tag) => new Tag(tag.name, tag.value)),
     );
   }
 
   static fromAttributeValues(
     attrs: Record<string, AttributeValue> | undefined,
   ): MetricDefinition | undefined {
-    if (attrs === undefined) {
-      return undefined;
-    } else {
+    if (
+      attrs?.orgId.S != null &&
+      attrs?.id.S != null &&
+      attrs?.name.S != null &&
+      attrs?.description.S != null &&
+      attrs?.unit.S != null &&
+      attrs?.regressionDirection.S != null &&
+      attrs?.tags.L != null
+    ) {
       return new MetricDefinition(
-        attrs.orgId.S!,
-        attrs.id.S!,
+        attrs.orgId.S,
+        attrs.id.S,
         attrs.name.S,
-        attrs.description?.S,
-        attrs.unit.S!,
-        attrs.regressionDirection.S!,
-        attrs.tags.L?.map((tag) => new Tag(tag.M!.name.S!, tag.M!.value.S!)),
+        attrs.description.S,
+        attrs.unit.S,
+        attrs.regressionDirection.S,
+        attrs.tags.L?.flatMap((tag) => Tag.fromAttributeValues(tag.M)),
       );
+    } else {
+      return undefined;
     }
   }
 }
@@ -101,9 +107,22 @@ export class MetricDefinitionKey {
     };
   }
 
-  toApiModel() {
+  toApiModel(): ApiMetricDefinitionKey {
     return {
       id: this.id,
     };
   }
+}
+
+interface ApiMetricDefinitionKey {
+  id: string;
+}
+
+export interface ApiMetricDefinition {
+  id: string;
+  name: string;
+  description: string;
+  unit: string;
+  regressionDirection: string;
+  tags: ApiTag[];
 }

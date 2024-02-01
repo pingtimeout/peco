@@ -15,7 +15,11 @@ import { StatusCodes } from "http-status-codes";
 
 import { extractOrgId, makeApiGwResponse } from "../api-gateway-util";
 import { environmentsTableName } from "../environment-variables";
-import { Environment, EnvironmentKey } from "../model/Environment";
+import {
+  type ApiEnvironment,
+  Environment,
+  EnvironmentKey,
+} from "../model/Environment";
 import { generateUuid } from "../uuid-generator";
 
 const client = new DynamoDBClient({});
@@ -24,18 +28,18 @@ const ddbDocClient = DynamoDBDocumentClient.from(client);
 export const handleAnyRequest = async (
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
-  const productId: string | undefined = event.pathParameters?.id;
+  const environmentId: string | undefined = event.pathParameters?.id;
   const method: string = event.httpMethod;
   console.debug({
     event: "Dispatching query",
     data: {
       httpMethod: method,
-      productId,
+      environmentId,
     },
   });
-  if (productId === undefined && method === "GET") {
+  if (environmentId === undefined && method === "GET") {
     return await handleGetAllRequest(event);
-  } else if (productId === undefined && method === "POST") {
+  } else if (environmentId === undefined && method === "POST") {
     return await handlePostRequest(event);
   } else if (method === "GET") {
     return await handleGetRequest(event);
@@ -81,8 +85,11 @@ const handleGetAllRequest = async (
     const environments =
       response.Items?.map((item) =>
         Environment.fromAttributeValues(item),
-      ).filter((u) => u !== undefined) || [];
-    console.debug({ event: "Fetched environments", data: environments });
+      ).filter((u) => u !== undefined) ?? [];
+    console.debug({
+      event: "Number of environments fetched:",
+      data: environments.length,
+    });
     return makeApiGwResponse(
       StatusCodes.OK,
       environments.map((u) => u.toApiModel()),
@@ -155,10 +162,13 @@ const handlePostRequest = async (
   }
   console.debug({ event: "Extracted orgId", data: orgId });
 
-  const parsedEnvironment = JSON.parse(event.body || "{}");
-  console.debug({ event: "Parsed environment", data: parsedEnvironment });
+  const parsedEnvironment = JSON.parse(event.body ?? "{}");
   parsedEnvironment.id = generateUuid();
-  const environment = Environment.fromApiModel(orgId, parsedEnvironment);
+  const environment = Environment.fromApiModel(
+    orgId,
+    parsedEnvironment as ApiEnvironment,
+  );
+  console.debug({ event: "Parsed environment", data: environment });
 
   try {
     await ddbDocClient.send(
@@ -203,15 +213,17 @@ const handlePutRequest = async (
   }
   console.debug({ event: "Extracted environmentId", data: environmentId });
 
-  const parsedEnvironment = JSON.parse(event.body || "{}");
-  console.debug({ event: "Parsed environment", data: parsedEnvironment });
-  const environment = Environment.fromApiModel(orgId, parsedEnvironment);
-
+  const parsedEnvironment = JSON.parse(event.body ?? "{}");
   if (parsedEnvironment.id !== environmentId) {
     return makeApiGwResponse(StatusCodes.BAD_REQUEST, {
       message: "Id mismatch",
     });
   }
+  const environment = Environment.fromApiModel(
+    orgId,
+    parsedEnvironment as ApiEnvironment,
+  );
+  console.debug({ event: "Parsed environment", data: environment });
 
   try {
     await ddbDocClient.send(

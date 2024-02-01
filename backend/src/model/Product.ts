@@ -1,19 +1,19 @@
 import { type AttributeValue } from "@aws-sdk/client-dynamodb";
 
-import { Tag } from "./Tag";
+import { type ApiTag, Tag } from "./Tag";
 
 export class Product {
   key: ProductKey;
-  name: string | undefined;
-  description: string | undefined;
-  tags: Tag[] | undefined;
+  name: string;
+  description: string;
+  tags: Tag[];
 
   constructor(
     orgId: string,
     id: string,
-    name: string | undefined,
-    description: string | undefined,
-    tags: Tag[] | undefined,
+    name: string,
+    description: string,
+    tags: Tag[],
   ) {
     this.key = new ProductKey(orgId, id);
     this.name = name;
@@ -23,25 +23,23 @@ export class Product {
 
   toAttributeValues(): Record<string, AttributeValue> {
     return {
+      name: { S: this.name },
+      description: { S: this.description },
+      tags: { L: this.tags.map((tag) => tag.toMapAttributeValue()) },
       ...this.key.toAttributeValues(),
-      ...(this.name && { name: { S: this.name } }),
-      ...(this.description && { description: { S: this.description } }),
-      ...(this.tags && {
-        tags: { L: this.tags.map((tag) => tag.toMapAttributeValue()) },
-      }),
     };
   }
 
-  toApiModel() {
+  toApiModel(): ApiProduct {
     return {
+      name: this.name,
+      description: this.description,
+      tags: this.tags.map((tag) => tag.toApiModel()),
       ...this.key.toApiModel(),
-      ...(this.name && { name: this.name }),
-      ...(this.description && { description: this.description }),
-      ...(this.tags && { tags: this.tags.map((tag) => tag.toApiModel()) }),
     };
   }
 
-  static fromApiModel(orgId: string, parsedProduct: any): Product {
+  static fromApiModel(orgId: string, parsedProduct: ApiProduct): Product {
     return new Product(
       orgId,
       parsedProduct.id,
@@ -54,16 +52,22 @@ export class Product {
   static fromAttributeValues(
     attrs: Record<string, AttributeValue> | undefined,
   ): Product | undefined {
-    if (attrs === undefined) {
-      return undefined;
-    } else {
+    if (
+      attrs?.orgId.S != null &&
+      attrs?.id.S != null &&
+      attrs?.name.S != null &&
+      attrs?.description.S != null &&
+      attrs?.tags.L != null
+    ) {
       return new Product(
-        attrs.orgId.S!,
-        attrs.id.S!,
+        attrs.orgId.S,
+        attrs.id.S,
         attrs.name.S,
-        attrs.description?.S,
-        attrs.tags.L?.map((tag) => new Tag(tag.M!.name.S!, tag.M!.value.S!)),
+        attrs.description.S,
+        attrs.tags.L.flatMap((tag) => Tag.fromAttributeValues(tag.M)),
       );
+    } else {
+      return undefined;
     }
   }
 }
@@ -84,9 +88,20 @@ export class ProductKey {
     };
   }
 
-  toApiModel() {
+  toApiModel(): ApiProductKey {
     return {
       id: this.id,
     };
   }
+}
+
+interface ApiProductKey {
+  id: string;
+}
+
+export interface ApiProduct {
+  id: string;
+  name: string;
+  description: string;
+  tags: ApiTag[];
 }

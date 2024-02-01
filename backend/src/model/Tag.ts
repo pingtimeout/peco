@@ -18,10 +18,25 @@ export class Tag {
     };
   }
 
-  toApiModel() {
+  toApiModel(): { name: string; value: string } {
     return {
       name: this.name,
       value: this.value,
     };
   }
+
+  static fromAttributeValues(
+    attrs: Record<string, AttributeValue> | undefined,
+  ): Tag[] {
+    if (attrs?.name.S != null && attrs?.value.S != null) {
+      return [new Tag(attrs.name.S, attrs.value.S)];
+    } else {
+      return [];
+    }
+  }
+}
+
+export interface ApiTag {
+  name: string;
+  value: string;
 }

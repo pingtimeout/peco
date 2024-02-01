@@ -4,7 +4,7 @@ import {
 } from "aws-lambda";
 
 export function extractOrgId(event: APIGatewayProxyEvent): string | undefined {
-  const claims = event.requestContext?.authorizer?.claims || {};
+  const claims = event.requestContext?.authorizer?.claims ?? {};
   return claims["custom:orgId"];
 }
 

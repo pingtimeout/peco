@@ -58,7 +58,7 @@ export const handlePostRequest = async (
     });
   }
 
-  const parsedRun = JSON.parse(event.body || "{}");
+  const parsedRun = JSON.parse(event.body ?? "{}");
   console.debug({
     event: "Parsed run definition",
     data: JSON.stringify(parsedRun),

@@ -15,7 +15,7 @@ import { StatusCodes } from "http-status-codes";
 
 import { extractOrgId, makeApiGwResponse } from "../api-gateway-util";
 import { productsTableName } from "../environment-variables";
-import { Product, ProductKey } from "../model/Product";
+import { type ApiProduct, Product, ProductKey } from "../model/Product";
 import { generateUuid } from "../uuid-generator";
 
 const client = new DynamoDBClient({});
@@ -81,8 +81,11 @@ const handleGetAllRequest = async (
     const products =
       response.Items?.map((item) => Product.fromAttributeValues(item)).filter(
         (u) => u !== undefined,
-      ) || [];
-    console.debug({ event: "Fetched products", data: products });
+      ) ?? [];
+    console.debug({
+      event: "Number of products fetched:",
+      data: products.length,
+    });
     return makeApiGwResponse(
       StatusCodes.OK,
       products.map((u) => u.toApiModel()),
@@ -155,10 +158,10 @@ const handlePostRequest = async (
   }
   console.debug({ event: "Extracted orgId", data: orgId });
 
-  const parsedProduct = JSON.parse(event.body || "{}");
-  console.debug({ event: "Parsed product", data: parsedProduct });
+  const parsedProduct = JSON.parse(event.body ?? "{}");
   parsedProduct.id = generateUuid();
-  const product = Product.fromApiModel(orgId, parsedProduct);
+  const product = Product.fromApiModel(orgId, parsedProduct as ApiProduct);
+  console.debug({ event: "Parsed product", data: product });
 
   try {
     await ddbDocClient.send(
@@ -203,15 +206,14 @@ const handlePutRequest = async (
   }
   console.debug({ event: "Extracted productId", data: productId });
 
-  const parsedProduct = JSON.parse(event.body || "{}");
-  console.debug({ event: "Parsed product", data: parsedProduct });
-  const product = Product.fromApiModel(orgId, parsedProduct);
-
+  const parsedProduct = JSON.parse(event.body ?? "{}");
   if (parsedProduct.id !== productId) {
     return makeApiGwResponse(StatusCodes.BAD_REQUEST, {
       message: "Id mismatch",
     });
   }
+  const product = Product.fromApiModel(orgId, parsedProduct as ApiProduct);
+  console.debug({ event: "Parsed product", data: product });
 
   try {
     await ddbDocClient.send(

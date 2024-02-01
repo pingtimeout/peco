@@ -1,6 +1,6 @@
 import { type AttributeValue } from "@aws-sdk/client-dynamodb";
 
-import { Tag } from "./Tag";
+import { type ApiTag, Tag } from "./Tag";
 
 export class BenchmarkDefinition {
   key: BenchmarkDefinitionKey;
@@ -31,34 +31,38 @@ export class BenchmarkDefinition {
   }
 
   toAttributeValues(): Record<string, AttributeValue> {
+    const hasJenkinsJobUrl = this.jenkinsJobUrl != null;
+    const hasTags = this.tags != null;
     return {
       ...this.key.toAttributeValues(),
       ...{ useCaseId: { S: this.useCaseId } },
       ...{ environmentId: { S: this.environmentId } },
       ...{ productId: { S: this.productId } },
-      ...(this.jenkinsJobUrl && { jenkinsJobUrl: { S: this.jenkinsJobUrl } }),
-      ...(this.tags && {
+      ...(hasJenkinsJobUrl && { jenkinsJobUrl: { S: this.jenkinsJobUrl } }),
+      ...(hasTags && {
         tags: { L: this.tags.map((tag) => tag.toMapAttributeValue()) },
       }),
       ...{ lastUploadedTimestamp: { N: "" + this.lastUploadedTimestamp } },
     };
   }
 
-  toApiModel() {
+  toApiModel(): ApiBenchmarkDefinition {
+    const hasJenkinsJobUrl = this.jenkinsJobUrl != null;
+    const hasTags = this.tags != null;
     return {
       ...this.key.toApiModel(),
       ...{ useCaseId: this.useCaseId },
       ...{ environmentId: this.environmentId },
       ...{ productId: this.productId },
-      ...(this.jenkinsJobUrl && { jenkinsJobUrl: this.jenkinsJobUrl }),
-      ...(this.tags && { tags: this.tags.map((tag) => tag.toApiModel()) }),
+      ...(hasJenkinsJobUrl && { jenkinsJobUrl: this.jenkinsJobUrl }),
+      ...(hasTags && { tags: this.tags.map((tag) => tag.toApiModel()) }),
       ...{ lastUploadedTimestamp: this.lastUploadedTimestamp },
     };
   }
 
   static fromApiModel(
     orgId: string,
-    parsedBenchmarkDefinition: any,
+    parsedBenchmarkDefinition: ApiBenchmarkDefinition,
     lastUploadedTimestamp: number,
   ): BenchmarkDefinition {
     return new BenchmarkDefinition(
@@ -78,18 +82,22 @@ export class BenchmarkDefinition {
   static fromAttributeValues(
     attrs: Record<string, AttributeValue> | undefined,
   ): BenchmarkDefinition | undefined {
-    if (attrs === undefined) {
-      return undefined;
-    } else {
+    if (
+      attrs?.orgId.S != null &&
+      attrs?.id.S != null &&
+      attrs?.useCaseId.S != null &&
+      attrs?.environmentId.S != null &&
+      attrs?.productId.S != null
+    ) {
       return new BenchmarkDefinition(
-        attrs.orgId.S!,
-        attrs.id.S!,
-        attrs.useCaseId.S!,
-        attrs.environmentId.S!,
-        attrs.productId.S!,
+        attrs.orgId.S,
+        attrs.id.S,
+        attrs.useCaseId.S,
+        attrs.environmentId.S,
+        attrs.productId.S,
         attrs.jenkinsJobUrl?.S,
-        attrs.tags.L?.map((tag) => new Tag(tag.M!.name.S!, tag.M!.value.S!)),
-        parseInt(attrs.lastUploadedTimestamp.N!),
+        attrs.tags.L?.flatMap((tag) => Tag.fromAttributeValues(tag.M)),
+        parseInt(attrs.lastUploadedTimestamp.N ?? "0"),
       );
     }
   }
@@ -111,9 +119,23 @@ export class BenchmarkDefinitionKey {
     };
   }
 
-  toApiModel() {
+  toApiModel(): ApiBenchmarkDefinitionKey {
     return {
       id: this.id,
     };
   }
+}
+
+interface ApiBenchmarkDefinitionKey {
+  id: string;
+}
+
+export interface ApiBenchmarkDefinition {
+  id: string;
+  useCaseId: string;
+  environmentId: string;
+  productId: string;
+  jenkinsJobUrl: string | undefined;
+  tags: ApiTag[] | undefined;
+  lastUploadedTimestamp: number;
 }

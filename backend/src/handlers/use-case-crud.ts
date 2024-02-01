@@ -15,7 +15,7 @@ import { StatusCodes } from "http-status-codes";
 
 import { extractOrgId, makeApiGwResponse } from "../api-gateway-util";
 import { useCasesTableName } from "../environment-variables";
-import { UseCase, UseCaseKey } from "../model/UseCase";
+import { type ApiUseCase, UseCase, UseCaseKey } from "../model/UseCase";
 import { generateUuid } from "../uuid-generator";
 
 const client = new DynamoDBClient({});
@@ -81,8 +81,11 @@ const handleGetAllRequest = async (
     const useCases =
       response.Items?.map((item) => UseCase.fromAttributeValues(item)).filter(
         (u) => u !== undefined,
-      ) || [];
-    console.debug({ event: "Fetched use-cases", data: useCases });
+      ) ?? [];
+    console.debug({
+      event: "Number of use-cases fetched:",
+      data: useCases.length,
+    });
     return makeApiGwResponse(
       StatusCodes.OK,
       useCases.map((u) => u.toApiModel()),
@@ -155,10 +158,10 @@ const handlePostRequest = async (
   }
   console.debug({ event: "Extracted orgId", data: orgId });
 
-  const parsedUseCase = JSON.parse(event.body || "{}");
-  console.debug({ event: "Parsed use-case", data: parsedUseCase });
+  const parsedUseCase = JSON.parse(event.body ?? "{}");
   parsedUseCase.id = generateUuid();
-  const useCase = UseCase.fromApiModel(orgId, parsedUseCase);
+  const useCase = UseCase.fromApiModel(orgId, parsedUseCase as ApiUseCase);
+  console.debug({ event: "Parsed use-case", data: useCase });
 
   try {
     await ddbDocClient.send(
@@ -203,15 +206,14 @@ const handlePutRequest = async (
   }
   console.debug({ event: "Extracted useCaseId", data: useCaseId });
 
-  const parsedUseCase = JSON.parse(event.body || "{}");
-  console.debug({ event: "Parsed use-case", data: parsedUseCase });
-  const useCase = UseCase.fromApiModel(orgId, parsedUseCase);
-
+  const parsedUseCase = JSON.parse(event.body ?? "{}");
   if (parsedUseCase.id !== useCaseId) {
     return makeApiGwResponse(StatusCodes.BAD_REQUEST, {
       message: "Id mismatch",
     });
   }
+  const useCase = UseCase.fromApiModel(orgId, parsedUseCase as ApiUseCase);
+  console.debug({ event: "Parsed use-case", data: useCase });
 
   try {
     await ddbDocClient.send(

@@ -9,7 +9,10 @@ import {
   ScanCommand,
 } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
-import { type APIGatewayProxyEvent, type APIGatewayProxyResult } from "aws-lambda";
+import {
+  type APIGatewayProxyEvent,
+  type APIGatewayProxyResult,
+} from "aws-lambda";
 import { mockClient } from "aws-sdk-client-mock";
 
 import { handleAnyRequest } from "../../../src/handlers/benchmark-definition-crud";

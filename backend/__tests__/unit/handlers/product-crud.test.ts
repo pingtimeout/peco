@@ -8,7 +8,10 @@ import {
   ScanCommand,
 } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
-import { type APIGatewayProxyEvent, type APIGatewayProxyResult } from "aws-lambda";
+import {
+  type APIGatewayProxyEvent,
+  type APIGatewayProxyResult,
+} from "aws-lambda";
 import { mockClient } from "aws-sdk-client-mock";
 
 import { handleAnyRequest } from "../../../src/handlers/product-crud";
@@ -248,12 +251,12 @@ describe("Test handleGetRequest", () => {
         "Access-Control-Allow-Origin": "*",
       },
       body: JSON.stringify({
-        id: "existing-product-id",
         name: "the-returned-name",
         description: "the-returned-description",
         tags: [
           { name: "the-returned-tag-name", value: "the-returned-tag-value" },
         ],
+        id: "existing-product-id",
       }),
     });
   });
@@ -642,6 +645,7 @@ describe("Test handleGetAllRequest", () => {
             orgId: { S: "the-org-id" },
             id: { S: "product-id-1" },
             name: { S: "name-1" },
+            description: { S: "description-1" },
             tags: {
               L: [
                 {
@@ -663,6 +667,7 @@ describe("Test handleGetAllRequest", () => {
             orgId: { S: "the-org-id" },
             id: { S: "product-id-2" },
             name: { S: "name-2" },
+            description: { S: "description-2" },
             tags: {
               L: [
                 {
@@ -678,6 +683,7 @@ describe("Test handleGetAllRequest", () => {
             orgId: { S: "the-org-id" },
             id: { S: "product-id-3" },
             name: { S: "name-3" },
+            description: { S: "description-3" },
             tags: {
               L: [
                 {
@@ -729,26 +735,29 @@ describe("Test handleGetAllRequest", () => {
       },
       body: JSON.stringify([
         {
-          id: "product-id-1",
           name: "name-1",
+          description: "description-1",
           tags: [
             { name: "tag-1-name", value: "tag-1-value-1" },
             { name: "tag-2-name", value: "tag-2-value-1" },
           ],
+          id: "product-id-1",
         },
         {
-          id: "product-id-2",
           name: "name-2",
+          description: "description-2",
           tags: [{ name: "tag-1-name", value: "tag-1-value-2" }],
+          id: "product-id-2",
         },
         {
-          id: "product-id-3",
           name: "name-3",
+          description: "description-3",
           tags: [
             { name: "tag-1-name", value: "tag-1-value-3" },
             { name: "tag-2-name", value: "tag-2-value-3" },
             { name: "tag-3-name", value: "tag-3-value-3" },
           ],
+          id: "product-id-3",
         },
       ]),
     });

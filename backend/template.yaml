@@ -206,6 +206,8 @@ Resources:
           required:
             - name
             - description
+            - unit
+            - regressionDirection
             - tags
           properties:
             id:

@@ -8,7 +8,10 @@ import {
   ScanCommand,
 } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
-import { type APIGatewayProxyEvent, type APIGatewayProxyResult } from "aws-lambda";
+import {
+  type APIGatewayProxyEvent,
+  type APIGatewayProxyResult,
+} from "aws-lambda";
 import { mockClient } from "aws-sdk-client-mock";
 
 import { handleAnyRequest } from "../../../src/handlers/metric-definition-crud";
@@ -256,7 +259,6 @@ describe("Test handleGetRequest", () => {
         "Access-Control-Allow-Origin": "*",
       },
       body: JSON.stringify({
-        id: "existing-metric-definition-id",
         name: "the-returned-name",
         description: "the-returned-description",
         unit: "bytes/s",
@@ -264,6 +266,7 @@ describe("Test handleGetRequest", () => {
         tags: [
           { name: "the-returned-tag-name", value: "the-returned-tag-value" },
         ],
+        id: "existing-metric-definition-id",
       }),
     });
   });
@@ -321,6 +324,13 @@ describe("Test handlePutRequest", () => {
       },
       body: JSON.stringify({
         id: "json-body-metric-definition-id",
+        name: "the-updated-name",
+        description: "the-updated-description",
+        unit: "none",
+        regressionDirection: "up",
+        tags: [
+          { name: "the-updated-tag-name", value: "the-updated-tag-value" },
+        ],
       }),
     };
 
@@ -664,6 +674,7 @@ describe("Test handleGetAllRequest", () => {
             orgId: { S: "the-org-id" },
             id: { S: "metric-definition-id-1" },
             name: { S: "name-1" },
+            description: { S: "description-1" },
             unit: { S: "bytes/s" },
             regressionDirection: { S: "down" },
             tags: {
@@ -687,6 +698,7 @@ describe("Test handleGetAllRequest", () => {
             orgId: { S: "the-org-id" },
             id: { S: "metric-definition-id-2" },
             name: { S: "name-2" },
+            description: { S: "description-2" },
             unit: { S: "bits/s" },
             regressionDirection: { S: "up" },
             tags: {
@@ -704,6 +716,7 @@ describe("Test handleGetAllRequest", () => {
             orgId: { S: "the-org-id" },
             id: { S: "metric-definition-id-3" },
             name: { S: "name-3" },
+            description: { S: "description-3" },
             unit: { S: "percent" },
             regressionDirection: { S: "up" },
             tags: {
@@ -759,25 +772,27 @@ describe("Test handleGetAllRequest", () => {
       },
       body: JSON.stringify([
         {
-          id: "metric-definition-id-1",
           name: "name-1",
+          description: "description-1",
           unit: "bytes/s",
           regressionDirection: "down",
           tags: [
             { name: "tag-1-name", value: "tag-1-value-1" },
             { name: "tag-2-name", value: "tag-2-value-1" },
           ],
+          id: "metric-definition-id-1",
         },
         {
-          id: "metric-definition-id-2",
           name: "name-2",
+          description: "description-2",
           unit: "bits/s",
           regressionDirection: "up",
           tags: [{ name: "tag-1-name", value: "tag-1-value-2" }],
+          id: "metric-definition-id-2",
         },
         {
-          id: "metric-definition-id-3",
           name: "name-3",
+          description: "description-3",
           unit: "percent",
           regressionDirection: "up",
           tags: [
@@ -785,6 +800,7 @@ describe("Test handleGetAllRequest", () => {
             { name: "tag-2-name", value: "tag-2-value-3" },
             { name: "tag-3-name", value: "tag-3-value-3" },
           ],
+          id: "metric-definition-id-3",
         },
       ]),
     });

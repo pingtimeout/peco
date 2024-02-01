@@ -186,7 +186,7 @@ const handlePostRequest = async (
   }
   console.debug({ event: "Extracted orgId", data: orgId });
 
-  const parsedBenchmarkDefinition = JSON.parse(event.body || "{}");
+  const parsedBenchmarkDefinition = JSON.parse(event.body ?? "{}");
   console.debug({
     event: "Parsed benchmarkDefinition",
     data: parsedBenchmarkDefinition,
@@ -301,7 +301,7 @@ const handlePutRequest = async (
     data: benchmarkDefinitionId,
   });
 
-  const parsedBenchmarkDefinition = JSON.parse(event.body || "{}");
+  const parsedBenchmarkDefinition = JSON.parse(event.body ?? "{}");
   console.debug({
     event: "Parsed benchmarkDefinition",
     data: parsedBenchmarkDefinition,

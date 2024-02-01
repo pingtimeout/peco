@@ -1,4 +1,7 @@
-import { type APIGatewayProxyEvent, type APIGatewayProxyResult } from "aws-lambda";
+import {
+  type APIGatewayProxyEvent,
+  type APIGatewayProxyResult,
+} from "aws-lambda";
 
 export async function test_rejection_if_not_json_content_type(
   ddbMock: any,
