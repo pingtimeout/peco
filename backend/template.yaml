@@ -88,6 +88,12 @@ Resources:
         <<: *esbuild_props
         EntryPoints:
           - src/handlers/cognito-post-confirmation.ts
+  CognitoAutomaticOrgIdAssignmentFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DependsOn: CognitoAutomaticOrgIdAssignmentFunction
+    Properties:
+      RetentionInDays: 90
+      LogGroupName: !Join ["", ["/aws/lambda/", !Ref CognitoAutomaticOrgIdAssignmentFunction]]
   CognitoLambdaInvokePermission:
     Type: AWS::Lambda::Permission
     Properties:
