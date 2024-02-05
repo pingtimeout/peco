@@ -68,7 +68,7 @@ const handleGetAllRequest = async (
   try {
     const response = await ddbDocClient.send(
       new ScanCommand({
-        TableName: metricDefinitionsTableName,
+        TableName: metricDefinitionsTableName.value,
         FilterExpression: "orgId = :O",
         ExpressionAttributeValues: {
           ":O": { S: orgId },
@@ -136,7 +136,7 @@ const handleGetRequest = async (
   try {
     const response = await ddbDocClient.send(
       new GetItemCommand({
-        TableName: metricDefinitionsTableName,
+        TableName: metricDefinitionsTableName.value,
         Key: metricDefinitionKey.toAttributeValues(),
       }),
     );
@@ -195,7 +195,7 @@ const handlePostRequest = async (
   try {
     await ddbDocClient.send(
       new PutItemCommand({
-        TableName: metricDefinitionsTableName,
+        TableName: metricDefinitionsTableName.value,
         Item: metricDefinition.toAttributeValues(),
       }),
     );
@@ -259,7 +259,7 @@ const handlePutRequest = async (
   try {
     await ddbDocClient.send(
       new PutItemCommand({
-        TableName: metricDefinitionsTableName,
+        TableName: metricDefinitionsTableName.value,
         Item: metricDefinition.toAttributeValues(),
         ConditionExpression: "attribute_exists(orgId) AND attribute_exists(id)",
       }),
@@ -312,7 +312,7 @@ const handleDeleteRequest = async (
   try {
     await ddbDocClient.send(
       new DeleteItemCommand({
-        TableName: metricDefinitionsTableName,
+        TableName: metricDefinitionsTableName.value,
         Key: metricDefinitionKey.toAttributeValues(),
         ConditionExpression: "attribute_exists(orgId) AND attribute_exists(id)",
       }),

@@ -329,7 +329,7 @@ Resources:
             TableName: !Ref UseCasesTable
       Environment:
         Variables:
-          USE_CASE_TABLE_NAME: !Ref UseCasesTable
+          USE_CASES_TABLE_NAME: !Ref UseCasesTable
       Events:
         ListAll:
           Type: Api
@@ -408,7 +408,7 @@ Resources:
             TableName: !Ref EnvironmentsTable
       Environment:
         Variables:
-          ENVIRONMENT_TABLE_NAME: !Ref EnvironmentsTable
+          ENVIRONMENTS_TABLE_NAME: !Ref EnvironmentsTable
       Events:
         ListAll:
           Type: Api
@@ -487,7 +487,7 @@ Resources:
             TableName: !Ref ProductsTable
       Environment:
         Variables:
-          PRODUCT_TABLE_NAME: !Ref ProductsTable
+          PRODUCTS_TABLE_NAME: !Ref ProductsTable
       Events:
         ListAll:
           Type: Api
@@ -566,7 +566,7 @@ Resources:
             TableName: !Ref MetricDefinitionsTable
       Environment:
         Variables:
-          METRIC_DEFINITION_TABLE_NAME: !Ref MetricDefinitionsTable
+          METRIC_DEFINITIONS_TABLE_NAME: !Ref MetricDefinitionsTable
       Events:
         ListAll:
           Type: Api
@@ -657,7 +657,7 @@ Resources:
             TableName: !Ref BenchmarkDefinitionsTable
       Environment:
         Variables:
-          BENCHMARK_DEFINITION_TABLE_NAME: !Ref BenchmarkDefinitionsTable
+          BENCHMARK_DEFINITIONS_TABLE_NAME: !Ref BenchmarkDefinitionsTable
       Events:
         ListAll:
           Type: Api

@@ -28,12 +28,13 @@ jest.mock("../../../src/time-source", () => {
 });
 
 jest.mock("../../../src/environment-variables", () => {
+  const lazy = require("../../../src/lazy");
   return {
     __esModule: true,
-    benchmarkDefinitionsTableName: "MockBenchmarkDefinitionsTable",
-    benchmarkRunsTableName: "MockBenchmarkRunsTable",
-    benchmarkValuesTableName: "MockBenchmarkValuesTable",
-    monitoredMetricsTableName: "MockMonitoredMetricsTable",
+    benchmarkDefinitionsTableName: new lazy.Lazy(() => "MockBenchmarkDefinitionsTable"),
+    benchmarkRunsTableName: new lazy.Lazy(() => "MockBenchmarkRunsTable"),
+    benchmarkValuesTableName: new lazy.Lazy(() => "MockBenchmarkValuesTable"),
+    monitoredMetricsTableName: new lazy.Lazy(() => "MockMonitoredMetricsTable"),
   };
 });
 

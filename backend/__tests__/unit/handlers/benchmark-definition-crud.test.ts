@@ -23,12 +23,15 @@ import {
 } from "../handler-util";
 
 jest.mock("../../../src/environment-variables", () => {
+  const lazy = require("../../../src/lazy");
   return {
     __esModule: true,
-    useCasesTableName: "MockUseCasesTable",
-    environmentsTableName: "MockEnvironmentsTable",
-    productsTableName: "MockProductsTable",
-    benchmarkDefinitionsTableName: "MockBenchmarkDefinitionsTable",
+    useCasesTableName: new lazy.Lazy(() => "MockUseCasesTable"),
+    environmentsTableName: new lazy.Lazy(() => "MockEnvironmentsTable"),
+    productsTableName: new lazy.Lazy(() => "MockProductsTable"),
+    benchmarkDefinitionsTableName: new lazy.Lazy(
+      () => "MockBenchmarkDefinitionsTable",
+    ),
   };
 });
 
@@ -58,7 +61,7 @@ describe("Test handlePostRequest", () => {
   });
 
   it("should reject queries using other than JSON content type", async () => {
-    test_rejection_if_not_json_content_type(
+    await test_rejection_if_not_json_content_type(
       ddbMock,
       handleAnyRequest,
       undefined,
@@ -67,7 +70,7 @@ describe("Test handlePostRequest", () => {
   });
 
   it("should reject queries with no authorizer", async () => {
-    test_rejection_if_missing_authorizer(
+    await test_rejection_if_missing_authorizer(
       ddbMock,
       handleAnyRequest,
       undefined,
@@ -76,7 +79,7 @@ describe("Test handlePostRequest", () => {
   });
 
   it("should reject queries with no orgId in claims", async () => {
-    test_rejection_if_missing_orgId(
+    await test_rejection_if_missing_orgId(
       ddbMock,
       handleAnyRequest,
       undefined,

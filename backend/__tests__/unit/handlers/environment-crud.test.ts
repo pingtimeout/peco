@@ -22,9 +22,10 @@ import {
 } from "../handler-util";
 
 jest.mock("../../../src/environment-variables", () => {
+  const lazy = require("../../../src/lazy");
   return {
     __esModule: true,
-    environmentsTableName: "MockEnvironmentsTable",
+    environmentsTableName: new lazy.Lazy(() => "MockEnvironmentsTable"),
   };
 });
 

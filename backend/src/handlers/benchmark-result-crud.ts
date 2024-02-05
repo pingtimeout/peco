@@ -81,7 +81,7 @@ export const handlePostRequest = async (
   );
 
   const runPutRequest: PutItemInput = {
-    TableName: benchmarkRunsTableName,
+    TableName: benchmarkRunsTableName.value,
     Item: benchmarkRun.toAttributeValues(),
   };
   console.debug({
@@ -100,7 +100,7 @@ export const handlePostRequest = async (
   });
 
   const metricsUpdateRequest: UpdateItemInput = {
-    TableName: monitoredMetricsTableName,
+    TableName: monitoredMetricsTableName.value,
     Key: {
       orgId: { S: orgId },
       benchmarkId: { S: abr.benchmarkId },
@@ -119,7 +119,7 @@ export const handlePostRequest = async (
   });
 
   const benchmarkDefinitionUpdateRequest: UpdateItemInput = {
-    TableName: benchmarkDefinitionsTableName,
+    TableName: benchmarkDefinitionsTableName.value,
     Key: {
       orgId: { S: orgId },
       id: { S: abr.benchmarkId },
@@ -140,7 +140,7 @@ export const handlePostRequest = async (
     const valuesPutPromise = ddbDocClient.send(
       new BatchWriteItemCommand({
         RequestItems: {
-          [benchmarkValuesTableName]: valuesPutRequests,
+          [benchmarkValuesTableName.value]: valuesPutRequests,
         },
       }),
     );

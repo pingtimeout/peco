@@ -68,7 +68,7 @@ const handleGetAllRequest = async (
   try {
     const response = await ddbDocClient.send(
       new ScanCommand({
-        TableName: environmentsTableName,
+        TableName: environmentsTableName.value,
         FilterExpression: "orgId = :O",
         ExpressionAttributeValues: {
           ":O": { S: orgId },
@@ -125,7 +125,7 @@ const handleGetRequest = async (
   try {
     const response = await ddbDocClient.send(
       new GetItemCommand({
-        TableName: environmentsTableName,
+        TableName: environmentsTableName.value,
         Key: environmentKey.toAttributeValues(),
       }),
     );
@@ -173,7 +173,7 @@ const handlePostRequest = async (
   try {
     await ddbDocClient.send(
       new PutItemCommand({
-        TableName: environmentsTableName,
+        TableName: environmentsTableName.value,
         Item: environment.toAttributeValues(),
       }),
     );
@@ -228,7 +228,7 @@ const handlePutRequest = async (
   try {
     await ddbDocClient.send(
       new PutItemCommand({
-        TableName: environmentsTableName,
+        TableName: environmentsTableName.value,
         Item: environment.toAttributeValues(),
         ConditionExpression: "attribute_exists(orgId) AND attribute_exists(id)",
       }),
@@ -272,7 +272,7 @@ const handleDeleteRequest = async (
   try {
     await ddbDocClient.send(
       new DeleteItemCommand({
-        TableName: environmentsTableName,
+        TableName: environmentsTableName.value,
         Key: environmentKey.toAttributeValues(),
         ConditionExpression: "attribute_exists(orgId) AND attribute_exists(id)",
       }),

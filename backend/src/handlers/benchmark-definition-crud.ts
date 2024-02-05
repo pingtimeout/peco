@@ -74,7 +74,7 @@ const handleGetAllRequest = async (
   try {
     const response = await ddbDocClient.send(
       new ScanCommand({
-        TableName: benchmarkDefinitionsTableName,
+        TableName: benchmarkDefinitionsTableName.value,
         FilterExpression: "orgId = :O",
         ExpressionAttributeValues: {
           ":O": { S: orgId },
@@ -141,7 +141,7 @@ const handleGetRequest = async (
   try {
     const response = await ddbDocClient.send(
       new GetItemCommand({
-        TableName: benchmarkDefinitionsTableName,
+        TableName: benchmarkDefinitionsTableName.value,
         Key: benchmarkDefinitionKey.toAttributeValues(),
       }),
     );
@@ -194,7 +194,7 @@ const handlePostRequest = async (
   parsedBenchmarkDefinition.id = generateUuid();
 
   const referencedEntitiesRequests = {
-    [useCasesTableName]: {
+    [useCasesTableName.value]: {
       Keys: [
         {
           orgId: { S: orgId },
@@ -202,7 +202,7 @@ const handlePostRequest = async (
         },
       ],
     },
-    [environmentsTableName]: {
+    [environmentsTableName.value]: {
       Keys: [
         {
           orgId: { S: orgId },
@@ -210,7 +210,7 @@ const handlePostRequest = async (
         },
       ],
     },
-    [productsTableName]: {
+    [productsTableName.value]: {
       Keys: [
         {
           orgId: { S: orgId },
@@ -231,11 +231,11 @@ const handlePostRequest = async (
     );
     const referencedEntitiesResponses = referencedEntities.Responses || {};
     const missingUseCase =
-      referencedEntitiesResponses[useCasesTableName].length === 0;
+      referencedEntitiesResponses[useCasesTableName.value].length === 0;
     const missingEnvironment =
-      referencedEntitiesResponses[environmentsTableName].length === 0;
+      referencedEntitiesResponses[environmentsTableName.value].length === 0;
     const missingProduct =
-      referencedEntitiesResponses[productsTableName].length === 0;
+      referencedEntitiesResponses[productsTableName.value].length === 0;
     if (missingUseCase || missingEnvironment || missingProduct) {
       return makeApiGwResponse(StatusCodes.NOT_FOUND, {
         message: "Linked entity not found",
@@ -258,7 +258,7 @@ const handlePostRequest = async (
     });
     await ddbDocClient.send(
       new PutItemCommand({
-        TableName: benchmarkDefinitionsTableName,
+        TableName: benchmarkDefinitionsTableName.value,
         Item: benchmarkDefinition.toAttributeValues(),
       }),
     );
@@ -331,7 +331,7 @@ const handlePutRequest = async (
     await ddbDocClient.send(
       new PutItemCommand({
         ConditionExpression: "attribute_exists(orgId) AND attribute_exists(id)",
-        TableName: benchmarkDefinitionsTableName,
+        TableName: benchmarkDefinitionsTableName.value,
         Item: benchmarkDefinition.toAttributeValues(),
       }),
     );
@@ -380,7 +380,7 @@ const handleDeleteRequest = async (
   try {
     await ddbDocClient.send(
       new DeleteItemCommand({
-        TableName: benchmarkDefinitionsTableName,
+        TableName: benchmarkDefinitionsTableName.value,
         Key: benchmarkDefinitionKey.toAttributeValues(),
         ConditionExpression: "attribute_exists(orgId) AND attribute_exists(id)",
       }),

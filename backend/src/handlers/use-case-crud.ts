@@ -64,7 +64,7 @@ const handleGetAllRequest = async (
   try {
     const response = await ddbDocClient.send(
       new ScanCommand({
-        TableName: useCasesTableName,
+        TableName: useCasesTableName.value,
         FilterExpression: "orgId = :O",
         ExpressionAttributeValues: {
           ":O": { S: orgId },
@@ -121,7 +121,7 @@ const handleGetRequest = async (
   try {
     const response = await ddbDocClient.send(
       new GetItemCommand({
-        TableName: useCasesTableName,
+        TableName: useCasesTableName.value,
         Key: useCaseKey.toAttributeValues(),
       }),
     );
@@ -166,7 +166,7 @@ const handlePostRequest = async (
   try {
     await ddbDocClient.send(
       new PutItemCommand({
-        TableName: useCasesTableName,
+        TableName: useCasesTableName.value,
         Item: useCase.toAttributeValues(),
       }),
     );
@@ -218,7 +218,7 @@ const handlePutRequest = async (
   try {
     await ddbDocClient.send(
       new PutItemCommand({
-        TableName: useCasesTableName,
+        TableName: useCasesTableName.value,
         Item: useCase.toAttributeValues(),
         ConditionExpression: "attribute_exists(orgId) AND attribute_exists(id)",
       }),
@@ -262,7 +262,7 @@ const handleDeleteRequest = async (
   try {
     await ddbDocClient.send(
       new DeleteItemCommand({
-        TableName: useCasesTableName,
+        TableName: useCasesTableName.value,
         Key: useCaseKey.toAttributeValues(),
         ConditionExpression: "attribute_exists(orgId) AND attribute_exists(id)",
       }),
