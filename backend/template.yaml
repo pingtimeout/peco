@@ -767,7 +767,7 @@ Resources:
         - AttributeName: executedOn
           KeyType: RANGE
       BillingMode: PAY_PER_REQUEST
-  CrudBenchmarkRunsFunction:
+  CrudBenchmarkResultsFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: src/handlers/benchmark-result-crud.handleAnyRequest
@@ -833,12 +833,12 @@ Resources:
         <<: *esbuild_props
         EntryPoints:
           - src/handlers/benchmark-result-crud.ts
-  CrudBenchmarkRunsFunctionLogGroup:
+  CrudBenchmarkResultsFunctionLogGroup:
     Type: AWS::Logs::LogGroup
-    DependsOn: CrudBenchmarkRunsFunction
+    DependsOn: CrudBenchmarkResultsFunction
     Properties:
       RetentionInDays: 30
-      LogGroupName: !Join ["", ["/aws/lambda/", !Ref CrudBenchmarkRunsFunction]]
+      LogGroupName: !Join ["", ["/aws/lambda/", !Ref CrudBenchmarkResultsFunction]]
 
   ApplicationResourceGroup:
     Type: AWS::ResourceGroups::Group
