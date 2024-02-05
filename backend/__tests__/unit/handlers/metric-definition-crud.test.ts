@@ -25,7 +25,9 @@ jest.mock("../../../src/environment-variables", () => {
   const lazy = require("../../../src/lazy");
   return {
     __esModule: true,
-    metricDefinitionsTableName: new lazy.Lazy(() => "MockMetricDefinitionsTable"),
+    metricDefinitionsTableName: new lazy.Lazy(
+      () => "MockMetricDefinitionsTable",
+    ),
   };
 });
 

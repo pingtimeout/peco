@@ -62,7 +62,8 @@ do
     echo -e "\033[32mNothing to do\033[0m"
   else
     aws --profile performance dynamodb batch-write-item \
-      --request-items "$delete_requests"
+      --request-items "$delete_requests" \
+    | jq .UnprocessedItems
     echo -e "\033[32mDone\033[0m"
   fi
 done <<< "$FULL_VALUE_IDS"
@@ -95,7 +96,8 @@ do
     echo -e "\033[32mNothing to do\033[0m"
   else
     aws --profile performance dynamodb batch-write-item \
-      --request-items "$delete_requests"
+      --request-items "$delete_requests" \
+    | jq .UnprocessedItems
     echo -e "\033[32mDone\033[0m"
   fi
 done <<< "$FULL_RUN_IDS"
@@ -115,7 +117,8 @@ then
   echo -e "\033[32mNothing to do\033[0m"
 else
   aws --profile performance dynamodb batch-write-item \
-    --request-items "$delete_requests"
+    --request-items "$delete_requests" \
+  | jq .UnprocessedItems
   echo -e "\033[32mDone\033[0m"
 fi
 
@@ -134,7 +137,8 @@ then
   echo -e "\033[32mNothing to do\033[0m"
 else
   aws --profile performance dynamodb batch-write-item \
-    --request-items "$delete_requests"
+    --request-items "$delete_requests" \
+  | jq .UnprocessedItems
   echo -e "\033[32mDone\033[0m"
 fi
 
@@ -153,7 +157,8 @@ then
   echo -e "\033[32mNothing to do\033[0m"
 else
   aws --profile performance dynamodb batch-write-item \
-    --request-items "$delete_requests"
+    --request-items "$delete_requests" \
+  | jq .UnprocessedItems
   echo -e "\033[32mDone\033[0m"
 fi
 
@@ -173,6 +178,7 @@ then
 else
   aws --profile performance dynamodb batch-write-item \
     --request-items "$delete_requests" \
+  | jq .UnprocessedItems
   echo
 fi
 
@@ -191,7 +197,8 @@ then
   echo -e "\033[32mNothing to do\033[0m"
 else
   aws --profile performance dynamodb batch-write-item \
-    --request-items "$delete_requests"
+    --request-items "$delete_requests" \
+  | jq .UnprocessedItems
   echo -e "\033[32mDone\033[0m"
 fi
 
@@ -210,7 +217,8 @@ then
   echo -e "\033[32mNothing to do\033[0m"
 else
   aws --profile performance dynamodb batch-write-item \
-    --request-items "$delete_requests"
+    --request-items "$delete_requests" \
+  | jq .UnprocessedItems
   echo -e "\033[32mDone\033[0m"
 fi
 
