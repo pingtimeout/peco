@@ -655,9 +655,18 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref BenchmarkDefinitionsTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref UseCasesTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref EnvironmentsTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref ProductsTable
       Environment:
         Variables:
           BENCHMARK_DEFINITIONS_TABLE_NAME: !Ref BenchmarkDefinitionsTable
+          USE_CASES_TABLE_NAME: !Ref UseCasesTable
+          ENVIRONMENTS_TABLE_NAME: !Ref EnvironmentsTable
+          PRODUCTS_TABLE_NAME: !Ref ProductsTable
       Events:
         ListAll:
           Type: Api
