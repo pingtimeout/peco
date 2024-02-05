@@ -18,7 +18,11 @@ export class Tag {
     };
   }
 
-  toApiModel(): { name: string; value: string } {
+  static fromApiModel(apiTag: ApiTag): Tag {
+    return new Tag(apiTag.name, apiTag.value);
+  }
+
+  toApiModel(): ApiTag {
     return {
       name: this.name,
       value: this.value,

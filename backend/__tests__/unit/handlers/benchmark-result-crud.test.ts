@@ -11,7 +11,7 @@ import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { type APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { mockClient } from "aws-sdk-client-mock";
 
-import { handleAnyRequest } from "../../../src/handlers/benchmark-run-crud";
+import { handleAnyRequest } from "../../../src/handlers/benchmark-result-crud";
 import {
   test_rejection_if_missing_authorizer,
   test_rejection_if_missing_orgId,
@@ -71,7 +71,7 @@ describe("Test handlePostRequest", () => {
     );
   });
 
-  it("should store benchmark run metadata", async () => {
+  it("should update benchmark definition last uploaded timestamp", async () => {
     const event: Partial<APIGatewayProxyEvent> = {
       headers: {
         "content-type": "application/json",
@@ -95,6 +95,7 @@ describe("Test handlePostRequest", () => {
           { metricDefinitionId: "mid-4", value: 444 },
           { metricDefinitionId: "mid-5", value: 555 },
         ],
+        tags: [{ name: "Jenkins build number", value: "123" }],
       }),
     };
 
@@ -148,6 +149,7 @@ describe("Test handlePostRequest", () => {
           { metricDefinitionId: "mid-4", value: 444 },
           { metricDefinitionId: "mid-5", value: 555 },
         ],
+        tags: [{ name: "Jenkins build number", value: "123" }],
       }),
     };
 
@@ -159,7 +161,16 @@ describe("Test handlePostRequest", () => {
       Item: {
         fullRunId: { S: "the-org-id#the-benchmark-id" },
         executedOn: { N: "123456789" },
-        jenkinsJobNumber: { N: "0" },
+        tags: {
+          L: [
+            {
+              M: {
+                name: { S: "Jenkins build number" },
+                value: { S: "123" },
+              },
+            },
+          ],
+        },
       },
     });
     expect(result).toEqual({
@@ -195,6 +206,7 @@ describe("Test handlePostRequest", () => {
           { metricDefinitionId: "mid-4", value: 444 },
           { metricDefinitionId: "mid-5", value: 555 },
         ],
+        tags: [],
       }),
     };
 
@@ -285,6 +297,7 @@ describe("Test handlePostRequest", () => {
           { metricDefinitionId: "mid-4", value: 444 },
           { metricDefinitionId: "mid-5", value: 555 },
         ],
+        tags: [],
       }),
     };
 

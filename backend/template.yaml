@@ -93,7 +93,11 @@ Resources:
     DependsOn: CognitoAutomaticOrgIdAssignmentFunction
     Properties:
       RetentionInDays: 90
-      LogGroupName: !Join ["", ["/aws/lambda/", !Ref CognitoAutomaticOrgIdAssignmentFunction]]
+      LogGroupName:
+        !Join [
+          "",
+          ["/aws/lambda/", !Ref CognitoAutomaticOrgIdAssignmentFunction],
+        ]
   CognitoLambdaInvokePermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -257,7 +261,7 @@ Resources:
               maxItems: 10
               items:
                 $ref: tag
-        metric:
+        metricvalue:
           type: object
           additionalProperties: false
           required:
@@ -268,25 +272,29 @@ Resources:
               type: string
             value:
               type: number
-        benchmarkrun:
+        benchmarkresult:
           type: object
           additionalProperties: false
           required:
             - benchmarkId
             - executedOn
             - metrics
+            - tags
           properties:
             benchmarkId:
               type: string
             executedOn:
               type: number
-            jenkinsJobNumber:
-              type: string
             metrics:
               type: array
               maxItems: 25
               items:
-                $ref: metric
+                $ref: metricvalue
+            tags:
+              type: array
+              maxItems: 25
+              items:
+                $ref: metricvalue
 
   CommonLambdaDependenciesLayer:
     Type: AWS::Serverless::LayerVersion
@@ -753,7 +761,7 @@ Resources:
   CrudBenchmarkRunsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: src/handlers/benchmark-run-crud.handleAnyRequest
+      Handler: src/handlers/benchmark-result-crud.handleAnyRequest
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref BenchmarkDefinitionsTable
@@ -773,17 +781,17 @@ Resources:
         # ListAll:
         #   Type: Api
         #   Properties:
-        #     Path: /benchmark-runs/{benchmarkId}/
+        #     Path: /benchmark-results/{benchmarkId}/
         #     Method: GET
         #     RestApiId: !Ref RestApi
         Create:
           Type: Api
           Properties:
-            Path: /benchmark-runs/
+            Path: /benchmark-results/
             Method: POST
             RestApiId: !Ref RestApi
             RequestModel:
-              Model: benchmarkrun
+              Model: benchmarkresult
               Required: true
               ValidateBody: true
               ValidateParameters: false
@@ -815,7 +823,7 @@ Resources:
       BuildProperties:
         <<: *esbuild_props
         EntryPoints:
-          - src/handlers/benchmark-run-crud.ts
+          - src/handlers/benchmark-result-crud.ts
   CrudBenchmarkRunsFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     DependsOn: CrudBenchmarkRunsFunction

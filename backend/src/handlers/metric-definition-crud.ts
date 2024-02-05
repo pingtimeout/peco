@@ -16,6 +16,7 @@ import { StatusCodes } from "http-status-codes";
 import { extractOrgId, makeApiGwResponse } from "../api-gateway-util";
 import { metricDefinitionsTableName } from "../environment-variables";
 import {
+  type ApiMetricDefinition,
   MetricDefinition,
   MetricDefinitionKey,
 } from "../model/MetricDefinition";
@@ -86,10 +87,10 @@ const handleGetAllRequest = async (
     const metricDefinitions =
       response.Items?.map((item) =>
         MetricDefinition.fromAttributeValues(item),
-      ).filter((u) => u !== undefined) || [];
+      ).filter((u) => u !== undefined) ?? [];
     console.debug({
-      event: "Fetched metricDefinitions",
-      data: metricDefinitions,
+      event: "Number of metric definitions fetched:",
+      data: metricDefinitions.length,
     });
     return makeApiGwResponse(
       StatusCodes.OK,
@@ -181,15 +182,15 @@ const handlePostRequest = async (
   console.debug({ event: "Extracted orgId", data: orgId });
 
   const parsedMetricDefinition = JSON.parse(event.body ?? "{}");
-  console.debug({
-    event: "Parsed metricDefinition",
-    data: parsedMetricDefinition,
-  });
   parsedMetricDefinition.id = generateUuid();
   const metricDefinition = MetricDefinition.fromApiModel(
     orgId,
-    parsedMetricDefinition,
+    parsedMetricDefinition as ApiMetricDefinition,
   );
+  console.debug({
+    event: "Parsed metricDefinition",
+    data: metricDefinition,
+  });
 
   try {
     await ddbDocClient.send(
@@ -241,20 +242,19 @@ const handlePutRequest = async (
   });
 
   const parsedMetricDefinition = JSON.parse(event.body ?? "{}");
-  console.debug({
-    event: "Parsed metricDefinition",
-    data: parsedMetricDefinition,
-  });
-  const metricDefinition = MetricDefinition.fromApiModel(
-    orgId,
-    parsedMetricDefinition,
-  );
-
   if (parsedMetricDefinition.id !== metricDefinitionId) {
     return makeApiGwResponse(StatusCodes.BAD_REQUEST, {
       message: "Id mismatch",
     });
   }
+  const metricDefinition = MetricDefinition.fromApiModel(
+    orgId,
+    parsedMetricDefinition as ApiMetricDefinition,
+  );
+  console.debug({
+    event: "Parsed metricDefinition",
+    data: metricDefinition,
+  });
 
   try {
     await ddbDocClient.send(

@@ -2,14 +2,12 @@ import {
   APIGatewayClient,
   CreateApiKeyCommand,
   CreateUsagePlanKeyCommand,
-  GetUsagePlanCommandOutput,
   GetUsagePlansCommand,
 } from "@aws-sdk/client-api-gateway";
 import {
   AdminUpdateUserAttributesCommand,
   CognitoIdentityProviderClient,
 } from "@aws-sdk/client-cognito-identity-provider";
-import { PostConfirmationTriggerHandler } from "@types/aws-lambda";
 import { v4 as uuidv4 } from "uuid";
 import UUIDAPIKey from "uuid-apikey";
 
@@ -20,7 +18,7 @@ function newOrgId(): string {
   return "org-" + uuidv4();
 }
 
-function newApiKey(event: { userPoolId: any; userName: any }): string {
+function newApiKey(event: { userPoolId: string; userName: string }): string {
   const uuidApiKeyOptions = {
     noDashes: true,
   };
@@ -30,56 +28,81 @@ function newApiKey(event: { userPoolId: any; userName: any }): string {
   return apiKey;
 }
 
-/**
- * @type {import('@types/aws-lambda').PostConfirmationTriggerHandler}
- */
 exports.handler = async (event: {
   userPoolId: any;
   userName: any;
 }): Promise<any> => {
-  const usagePlansOutputPromise = apiGatewayClient.send(
-    new GetUsagePlansCommand({}),
-  );
+  const orgId: string = newOrgId();
+  const apiKey: string = newApiKey(event);
+  console.debug({
+    event: "Assigning ApiKey and orgId to user",
+    data: { userName: event.userName, orgId, apiKey },
+  });
 
-  const orgId = newOrgId();
-  const apiKey = newApiKey(event);
-  const updateUserAttributesParams = {
-    UserPoolId: event.userPoolId,
-    Username: event.userName,
-    UserAttributes: [
-      {
-        Name: "custom:orgId",
-        Value: orgId,
-      },
-      {
-        Name: "custom:apiKey",
-        Value: apiKey,
-      },
-    ],
-  };
-  const createApiKeyParams = {
-    name: event.userName,
-    value: apiKey,
-    enabled: true,
-    generateDistinctId: false,
-  };
-  await cognitoIdentityServiceProvider.send(
-    new AdminUpdateUserAttributesCommand(updateUserAttributesParams),
-  );
-  const apiKeyOutput = await apiGatewayClient.send(
-    new CreateApiKeyCommand(createApiKeyParams),
-  );
-  const usagePlansOutput = await usagePlansOutputPromise;
+  try {
+    const apiKeyOutputPromise = apiGatewayClient.send(
+      new CreateApiKeyCommand({
+        name: event.userName,
+        value: apiKey,
+        enabled: true,
+        generateDistinctId: false,
+      }),
+    );
 
-  const firstUsagePlanId = usagePlansOutput.items![0].id!;
-  const createUsagePlanKeyParams = {
-    usagePlanId: firstUsagePlanId,
-    keyId: apiKeyOutput.id!,
-    keyType: "API_KEY",
-  };
-  await apiGatewayClient.send(
-    new CreateUsagePlanKeyCommand(createUsagePlanKeyParams),
-  );
+    const usagePlansOutputPromise = apiGatewayClient.send(
+      new GetUsagePlansCommand({}),
+    );
 
-  return event;
+    const updateUserAttributesOutputPromise =
+      cognitoIdentityServiceProvider.send(
+        new AdminUpdateUserAttributesCommand({
+          UserPoolId: event.userPoolId,
+          Username: event.userName,
+          UserAttributes: [
+            {
+              Name: "custom:orgId",
+              Value: orgId,
+            },
+            {
+              Name: "custom:apiKey",
+              Value: apiKey,
+            },
+          ],
+        }),
+      );
+
+    const apiKeyOutput = await apiKeyOutputPromise;
+    console.debug({ event: "Created ApiKey with same name as username" });
+    const apiKeyId = apiKeyOutput.id;
+
+    const usagePlans = (await usagePlansOutputPromise).items ?? [];
+    console.debug({
+      event: "Number of usage plans fetched",
+      data: usagePlans.length,
+    });
+    const usagePlanId = usagePlans[0].id; // first usage plan, very fragile
+
+    await apiGatewayClient.send(
+      new CreateUsagePlanKeyCommand({
+        usagePlanId,
+        keyId: apiKeyId,
+        keyType: "API_KEY",
+      }),
+    );
+    console.debug({
+      event: "Associated ApiKey with UsagePlan",
+      data: { apiKeyId, usagePlanId },
+    });
+
+    await updateUserAttributesOutputPromise;
+    console.debug({ event: "Assigned orgId and apiKey to user" });
+
+    return event;
+  } catch (err) {
+    console.error({
+      event: "Failed to run post-confirmation lambda !",
+      data: err.stack,
+    });
+    return event;
+  }
 };

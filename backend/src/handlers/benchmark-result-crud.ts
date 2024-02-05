@@ -21,8 +21,10 @@ import {
   benchmarkValuesTableName,
   monitoredMetricsTableName,
 } from "../environment-variables";
+import { type ApiBenchmarkResult } from "../model/BenchmarkResult";
+import { BenchmarkRun } from "../model/BenchmarkRun";
+import { BenchmarkValue } from "../model/BenchmarkValue";
 import { currentTimestamp } from "../time-source";
-import { generateUuid } from "../uuid-generator";
 
 const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
@@ -58,44 +60,40 @@ export const handlePostRequest = async (
     });
   }
 
-  const parsedRun = JSON.parse(event.body ?? "{}");
+  if (event.body == null) {
+    return makeApiGwResponse(StatusCodes.BAD_REQUEST, {
+      message: "Missing body",
+    });
+  }
+  const abr = JSON.parse(event.body) as ApiBenchmarkResult;
   console.debug({
-    event: "Parsed run definition",
-    data: JSON.stringify(parsedRun),
+    event: "Parsed result definition",
+    data: JSON.stringify(abr),
   });
 
-  const benchmarkId = parsedRun.benchmarkId;
-  const executedOn = parsedRun.executedOn;
-  const jenkinsJobNumber = isNaN(parsedRun.jenkinsJobNumber)
-    ? 0
-    : Number(parsedRun.jenkinsJobNumber);
+  const benchmarkRun: BenchmarkRun = BenchmarkRun.fromApiModel(orgId, abr);
+  console.debug({
+    event: "Computing values from",
+    data: JSON.stringify(abr.metrics),
+  });
+  const benchmarkValues: BenchmarkValue[] = abr.metrics.map((amv) =>
+    BenchmarkValue.fromApiModel(orgId, abr, amv),
+  );
 
   const runPutRequest: PutItemInput = {
     TableName: benchmarkRunsTableName,
-    Item: {
-      fullRunId: { S: orgId + "#" + benchmarkId },
-      executedOn: { N: executedOn.toString() },
-      jenkinsJobNumber: { N: jenkinsJobNumber.toString() },
-    },
+    Item: benchmarkRun.toAttributeValues(),
   };
   console.debug({
     event: "Run put request",
     data: JSON.stringify(runPutRequest),
   });
 
-  const valuesPutRequests: WriteRequest[] = parsedRun.metrics.map(
-    (metric: any) => ({
-      PutRequest: {
-        Item: {
-          fullValueId: {
-            S: orgId + "#" + benchmarkId + "#" + metric.metricDefinitionId,
-          },
-          executedOn: { N: executedOn.toString() },
-          value: { N: metric.value.toString() },
-        },
-      },
-    }),
-  );
+  const valuesPutRequests = benchmarkValues.map((bv) => ({
+    PutRequest: {
+      Item: bv.toAttributeValues(),
+    },
+  }));
   console.debug({
     event: "Values put requests",
     data: JSON.stringify(valuesPutRequests),
@@ -105,13 +103,13 @@ export const handlePostRequest = async (
     TableName: monitoredMetricsTableName,
     Key: {
       orgId: { S: orgId },
-      benchmarkId: { S: benchmarkId },
+      benchmarkId: { S: abr.benchmarkId },
     },
     UpdateExpression: "ADD #metricDefinitionIds :metricDefinitionIds",
     ExpressionAttributeNames: { "#metricDefinitionIds": "metricDefinitionIds" },
     ExpressionAttributeValues: {
       ":metricDefinitionIds": {
-        SS: parsedRun.metrics.map((metric: any) => metric.metricDefinitionId),
+        SS: abr.metrics.map((metric: any) => metric.metricDefinitionId),
       },
     },
   };
@@ -124,7 +122,7 @@ export const handlePostRequest = async (
     TableName: benchmarkDefinitionsTableName,
     Key: {
       orgId: { S: orgId },
-      id: { S: benchmarkId },
+      id: { S: abr.benchmarkId },
     },
     UpdateExpression: "SET #L = :l",
     ExpressionAttributeNames: { "#L": "lastUploadedTimestamp" },
