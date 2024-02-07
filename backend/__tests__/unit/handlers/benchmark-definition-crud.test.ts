@@ -40,7 +40,7 @@ jest.mock("../../../src/uuid-generator", () => {
   return {
     __esModule: true,
     ...originalModule,
-    generateUuid: jest.fn(() => "00000000-1111-2222-3333-444444444444"),
+    generateUuid: jest.fn(() => "xsJQ5L5URaisxnyZmvpbuJ"),
   };
 });
 
@@ -126,7 +126,7 @@ describe("Test handlePostRequest", () => {
       TableName: "MockBenchmarkDefinitionsTable",
       Item: {
         orgId: { S: "the-org-id" },
-        id: { S: "00000000-1111-2222-3333-444444444444" },
+        id: { S: "bnd-xsJQ5L5URaisxnyZmvpbuJ" },
         useCaseId: { S: "the-use-case-id" },
         environmentId: { S: "the-environment-id" },
         productId: { S: "the-product-id" },
@@ -150,7 +150,7 @@ describe("Test handlePostRequest", () => {
         "Access-Control-Allow-Origin": "*",
       },
       body: JSON.stringify({
-        id: "00000000-1111-2222-3333-444444444444",
+        id: "bnd-xsJQ5L5URaisxnyZmvpbuJ",
         useCaseId: "the-use-case-id",
         environmentId: "the-environment-id",
         productId: "the-product-id",
@@ -257,7 +257,7 @@ describe("Test handlePostRequest", () => {
         "Access-Control-Allow-Origin": "*",
       },
       body: JSON.stringify({
-        id: "00000000-1111-2222-3333-444444444444",
+        id: "bnd-xsJQ5L5URaisxnyZmvpbuJ",
         useCaseId: "the-use-case-id",
         environmentId: "the-environment-id",
         productId: "the-product-id",

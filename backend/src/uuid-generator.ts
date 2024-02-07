@@ -1,7 +1,7 @@
 // @prettier
 
-import { v4 as uuidv4 } from "uuid";
+import short from "short-uuid";
 
 export const generateUuid = (): string => {
-  return uuidv4();
+  return short.generate();
 };

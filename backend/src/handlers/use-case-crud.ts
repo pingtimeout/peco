@@ -159,7 +159,7 @@ const handlePostRequest = async (
   console.debug({ event: "Extracted orgId", data: orgId });
 
   const parsedUseCase = JSON.parse(event.body ?? "{}");
-  parsedUseCase.id = generateUuid();
+  parsedUseCase.id = "use-" + generateUuid();
   const useCase = UseCase.fromApiModel(orgId, parsedUseCase as ApiUseCase);
   console.debug({ event: "Parsed use-case", data: useCase });
 

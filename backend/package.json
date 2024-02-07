@@ -9,14 +9,13 @@
     "@aws-sdk/client-dynamodb": "^3.495.0",
     "@aws-sdk/lib-dynamodb": "^3.495.0",
     "http-status-codes": "^2.3.0",
-    "uuid": "^9.0.1",
+    "short-uuid": "^4.2.2",
     "uuid-apikey": "^1.5.3"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.23.3",
     "@types/aws-lambda": "^8.10.131",
     "@types/jest": "^29.5.11",
-    "@types/uuid": "^9.0.7",
     "@typescript-eslint/eslint-plugin": "^6.20.0",
     "aws-sdk-client-mock": "^2.0.0",
     "aws-sdk-client-mock-jest": "^3.0.1",

@@ -182,7 +182,7 @@ const handlePostRequest = async (
   console.debug({ event: "Extracted orgId", data: orgId });
 
   const parsedMetricDefinition = JSON.parse(event.body ?? "{}");
-  parsedMetricDefinition.id = generateUuid();
+  parsedMetricDefinition.id = "mtr-" + generateUuid();
   const metricDefinition = MetricDefinition.fromApiModel(
     orgId,
     parsedMetricDefinition as ApiMetricDefinition,

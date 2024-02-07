@@ -8,14 +8,14 @@ import {
   AdminUpdateUserAttributesCommand,
   CognitoIdentityProviderClient,
 } from "@aws-sdk/client-cognito-identity-provider";
-import { v4 as uuidv4 } from "uuid";
 import UUIDAPIKey from "uuid-apikey";
+import { generateUuid } from "../uuid-generator";
 
 const cognitoIdentityServiceProvider = new CognitoIdentityProviderClient({});
 const apiGatewayClient = new APIGatewayClient({});
 
 function newOrgId(): string {
-  return "org-" + uuidv4();
+  return "org-" + generateUuid();
 }
 
 function newApiKey(event: { userPoolId: string; userName: string }): string {
@@ -23,8 +23,8 @@ function newApiKey(event: { userPoolId: string; userName: string }): string {
     noDashes: true,
   };
   const userIdAsApiKey = UUIDAPIKey.toAPIKey(event.userName, uuidApiKeyOptions);
-  const randomUuidAsApiKey = UUIDAPIKey.create(uuidApiKeyOptions).apiKey;
-  const apiKey = "apikey-" + userIdAsApiKey + "-" + randomUuidAsApiKey;
+  const shortRandomUuid = generateUuid();
+  const apiKey = "api-" + userIdAsApiKey + "-" + shortRandomUuid;
   return apiKey;
 }
 

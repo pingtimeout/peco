@@ -34,7 +34,7 @@ jest.mock("../../../src/uuid-generator", () => {
   return {
     __esModule: true,
     ...originalModule,
-    generateUuid: jest.fn(() => "00000000-1111-2222-3333-444444444444"),
+    generateUuid: jest.fn(() => "xsJQ5L5URaisxnyZmvpbuJ"),
   };
 });
 
@@ -100,7 +100,7 @@ describe("Test handlePostRequest", () => {
       TableName: "MockUseCasesTable",
       Item: {
         orgId: { S: "the-org-id" },
-        id: { S: "00000000-1111-2222-3333-444444444444" },
+        id: { S: "use-xsJQ5L5URaisxnyZmvpbuJ" },
         name: { S: "the-name" },
         description: { S: "the-description" },
         tags: {
@@ -124,7 +124,7 @@ describe("Test handlePostRequest", () => {
         name: "the-name",
         description: "the-description",
         tags: [{ name: "the-tag-name", value: "the-tag-value" }],
-        id: "00000000-1111-2222-3333-444444444444",
+        id: "use-xsJQ5L5URaisxnyZmvpbuJ",
       }),
     });
   });
@@ -158,7 +158,7 @@ describe("Test handlePostRequest", () => {
       TableName: "MockUseCasesTable",
       Item: {
         orgId: { S: "the-org-id" },
-        id: { S: "00000000-1111-2222-3333-444444444444" },
+        id: { S: "use-xsJQ5L5URaisxnyZmvpbuJ" },
         name: { S: "the-name" },
         description: { S: "the-description" },
         tags: {
@@ -179,7 +179,7 @@ describe("Test handlePostRequest", () => {
         "Access-Control-Allow-Origin": "*",
       },
       body: JSON.stringify({
-        id: "00000000-1111-2222-3333-444444444444",
+        id: "use-xsJQ5L5URaisxnyZmvpbuJ",
         name: "the-name",
         description: "the-description",
         tags: [{ name: "the-tag-name", value: "the-tag-value" }],

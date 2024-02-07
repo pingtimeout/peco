@@ -159,7 +159,7 @@ const handlePostRequest = async (
   console.debug({ event: "Extracted orgId", data: orgId });
 
   const parsedProduct = JSON.parse(event.body ?? "{}");
-  parsedProduct.id = generateUuid();
+  parsedProduct.id = "prd-" + generateUuid();
   const product = Product.fromApiModel(orgId, parsedProduct as ApiProduct);
   console.debug({ event: "Parsed product", data: product });
 

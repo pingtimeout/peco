@@ -163,7 +163,7 @@ const handlePostRequest = async (
   console.debug({ event: "Extracted orgId", data: orgId });
 
   const parsedEnvironment = JSON.parse(event.body ?? "{}");
-  parsedEnvironment.id = generateUuid();
+  parsedEnvironment.id = "env-" + generateUuid();
   const environment = Environment.fromApiModel(
     orgId,
     parsedEnvironment as ApiEnvironment,

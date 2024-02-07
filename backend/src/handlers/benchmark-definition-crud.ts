@@ -191,7 +191,7 @@ const handlePostRequest = async (
     event: "Parsed benchmarkDefinition",
     data: parsedBenchmarkDefinition,
   });
-  parsedBenchmarkDefinition.id = generateUuid();
+  parsedBenchmarkDefinition.id = "bnd-" +generateUuid();
 
   const referencedEntitiesRequests = {
     [useCasesTableName.value]: {
