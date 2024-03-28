@@ -1,0 +1,8 @@
+= Contributing guide
+
+== Legal
+All contributions to Peco are licensed under the Apache License (https://www.apache.org/licenses/LICENSE-2.0), version 2.0 or later, or, if another license is specified as governing the file or directory being modified, such other license.
+All contributions are subject to the CLA (Contributor License Agreement). You have to sign a CLA here: https://www.dremio.com/legal/contributor-agreement/
+
+== Project Governance
+The project is governed by original authors and the Peco community.
